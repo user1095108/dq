@@ -1,5 +1,5 @@
-#ifndef CA_ARRAYITERATOR_HPP
-# define CA_ARRAYITERATOR_HPP
+#ifndef DQ_ARRAYITERATOR_HPP
+# define DQ_ARRAYITERATOR_HPP
 # pragma once
 
 #include <iterator>
@@ -168,4 +168,4 @@ constexpr auto operator+(typename CA::difference_type const n,
 
 }
 
-#endif // CA_ARRAYITERATOR_HPP
+#endif // DQ_ARRAYITERATOR_HPP
