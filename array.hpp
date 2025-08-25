@@ -651,10 +651,11 @@ public:
   }
 
   constexpr void push_front(auto&& ...a)
-    noexcept(noexcept((push_front<0>(std::forward<decltype(a)>(a)), ...)))
+    noexcept(noexcept(
+      insert<0>(multi, cbegin(), std::forward<decltype(a)>(a)...)))
     requires(sizeof...(a) > 1)
   {
-    (push_front<0>(std::forward<decltype(a)>(a)), ...);
+    insert<0>(multi, cbegin(), std::forward<decltype(a)>(a)...);
   }
 
   constexpr void push_front(value_type a)
