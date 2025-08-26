@@ -653,7 +653,7 @@ public:
   constexpr void push_front(auto&& ...a)
     noexcept(noexcept(
       insert<0>(multi, cbegin(), std::forward<decltype(a)>(a)...)))
-    requires(!!sizeof...(a))
+    requires(sizeof...(a) > 1)
   {
     insert<0>(multi, cbegin(), std::forward<decltype(a)>(a)...);
   }
