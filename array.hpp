@@ -177,8 +177,14 @@ public:
   {
   }
 
-  template <typename V = value_type>
-  constexpr explicit array(size_type const c, V const& v = V{}, int = 0)
+  constexpr explicit array(size_type const c)
+    noexcept(noexcept(array())):
+    array()
+  {
+    resize(c);
+  }
+
+  constexpr explicit array(size_type const c, auto const& v, int = 0)
     noexcept(noexcept(array(), std::fill(E, f_, l_, v))):
     array()
   {
