@@ -325,7 +325,7 @@ public:
 
   // N = CAP + 1 <= PTRDIFF_MAX
   static constexpr size_type capacity() noexcept { return CAP; }
-  static constexpr size_type max_size() noexcept { return PTRDIFF_MAX; }
+  static constexpr size_type max_size() noexcept { return PTRDIFF_MAX - 1; }
 
   //
   constexpr bool empty() const noexcept { return f_ == l_; }
