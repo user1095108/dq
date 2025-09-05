@@ -26,9 +26,9 @@ requires(
   !std::is_reference_v<T> &&
   !std::is_const_v<T> &&
   std::is_default_constructible_v<T> &&
-  (CAP > 0) && (CAP < PTRDIFF_MAX) &&
+  (CAP > 0) && (CAP <= PTRDIFF_MAX) &&
   (std::is_copy_assignable_v<T> || std::is_move_assignable_v<T>)
-) // N = CAP + 1 <= PTRDIFF_MAX
+) // N = CAP + 1 <= PTRDIFF_MAX + 1
 class array
 {
   friend class arrayiterator<T, array>;
@@ -102,7 +102,7 @@ public:
   }
 
   static constexpr auto distance_(auto const a, decltype(a) b) noexcept
-  { // N = CAP + 1 <= PTRDIFF_MAX
+  { // N = CAP + 1 <= PTRDIFF_MAX + 1
     auto const n(b - a);
     return n < difference_type{} ? difference_type(N) + n : n;
   }
@@ -323,9 +323,9 @@ public:
   constexpr auto crbegin() const noexcept { return rbegin(); }
   constexpr auto crend() const noexcept { return rend(); }
 
-  // N = CAP + 1 <= PTRDIFF_MAX
+  // N = CAP + 1 <= PTRDIFF_MAX + 1
   static constexpr size_type capacity() noexcept { return CAP; }
-  static constexpr size_type max_size() noexcept { return PTRDIFF_MAX - 1; }
+  static constexpr size_type max_size() noexcept { return PTRDIFF_MAX; }
 
   //
   constexpr bool empty() const noexcept { return f_ == l_; }
