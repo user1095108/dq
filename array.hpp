@@ -813,21 +813,21 @@ constexpr auto find(array<T, S, M, E> const& c, T const k)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-template <typename T1, auto S1, auto M1, auto E1,
-  typename T2, auto S2, auto M2, auto E2>
-constexpr bool operator==(array<T1, S1, M1, E1> const& l,
-  array<T2, S2, M2, E2> const& r)
+constexpr auto operator==(std::ranges::input_range auto const& l,
+  std::ranges::input_range auto const& r)
   noexcept(noexcept(std::equal(l.begin(), l.end(), r.begin(), r.end())))
+  requires(requires{std::remove_cvref_t<decltype(l)>::ca_array_tag;} ||
+    requires{std::remove_cvref_t<decltype(r)>::ca_array_tag;})
 {
   return std::equal(l.begin(), l.end(), r.begin(), r.end());
 }
 
-template <typename T1, auto S1, auto M1, auto E1,
-  typename T2, auto S2, auto M2, auto E2>
-constexpr auto operator<=>(array<T1, S1, M1, E1> const& l,
-  array<T2, S2, M2, E2> const& r)
+constexpr auto operator<=>(std::ranges::input_range auto const& l,
+  std::ranges::input_range auto const& r)
   noexcept(noexcept(std::lexicographical_compare_three_way(
     l.begin(), l.end(), r.begin(), r.end())))
+  requires(requires{std::remove_cvref_t<decltype(l)>::ca_array_tag;} ||
+    requires{std::remove_cvref_t<decltype(r)>::ca_array_tag;})
 {
   return std::lexicographical_compare_three_way(
     l.begin(), l.end(), r.begin(), r.end());
