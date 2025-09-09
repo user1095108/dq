@@ -117,12 +117,10 @@ public:
   }
 
   constexpr array()
-    noexcept(noexcept(new T[N], T{}))
+    noexcept(noexcept(new T[N]))
     requires(NEW == M)
   {
     f_ = l_ = a_ = new T[N];
-    if (std::is_constant_evaluated()) std::ranges::generate(
-      *this, []() noexcept(noexcept(T{})) { return T{}; });
   }
 
   constexpr array(array const& o)
@@ -138,9 +136,8 @@ public:
     requires(MEMBER == M):
     array()
   {
-    if (std::is_constant_evaluated())
-      std::move(o.begin(), o.end(), std::back_inserter(*this));
-    else
+    std::is_constant_evaluated() ?
+      std::move(o.begin(), o.end(), std::back_inserter(*this)) :
       std::move(E, o.begin(), o.end(), std::back_inserter(*this));
 
     o.clear();
@@ -165,9 +162,8 @@ public:
     noexcept(noexcept(std::copy(E, i, j, std::back_inserter(*this)))):
     array()
   {
-    if (std::is_constant_evaluated())
-      std::copy(i, j, std::back_inserter(*this));
-    else
+    std::is_constant_evaluated() ?
+      std::copy(i, j, std::back_inserter(*this)) :
       std::copy(E, i, j, std::back_inserter(*this));
   }
 
@@ -188,9 +184,9 @@ public:
     noexcept(noexcept(array(), std::fill(E, f_, l_, v))):
     array()
   {
-    if (resize(c); std::is_constant_evaluated())
-      std::fill(f_, l_, v);
-    else
+    resize(c);
+    std::is_constant_evaluated() ?
+      std::fill(f_, l_, v) :
       std::fill(E, f_, l_, v);
   }
 
@@ -230,9 +226,8 @@ public:
     {
       clear();
 
-      if (std::is_constant_evaluated())
-        std::copy(o.begin(), o.end(), std::back_inserter(*this));
-      else
+      std::is_constant_evaluated() ?
+        std::copy(o.begin(), o.end(), std::back_inserter(*this)) :
         std::copy(E, o.begin(), o.end(), std::back_inserter(*this));
     }
 
@@ -248,9 +243,8 @@ public:
     {
       clear();
 
-      if (std::is_constant_evaluated())
-        std::move(o.begin(), o.end(), std::back_inserter(*this));
-      else
+      std::is_constant_evaluated() ?
+        std::move(o.begin(), o.end(), std::back_inserter(*this)) :
         std::move(E, o.begin(), o.end(), std::back_inserter(*this));
 
       o.clear();
@@ -373,9 +367,8 @@ public:
   {
     clear();
 
-    if (std::is_constant_evaluated())
-      std::copy(i, j, std::back_inserter(*this));
-    else
+    std::is_constant_evaluated() ?
+      std::copy(i, j, std::back_inserter(*this)) :
       std::copy(E, i, j, std::back_inserter(*this));
   }
 
@@ -599,10 +592,9 @@ public:
     noexcept(noexcept(std::copy(E, std::ranges::begin(rg),
       std::ranges::end(rg), std::back_inserter(*this))))
   {
-    if (std::is_constant_evaluated())
+    std::is_constant_evaluated() ?
       std::copy(std::ranges::begin(rg), std::ranges::end(rg),
-        std::back_inserter(*this));
-    else
+        std::back_inserter(*this)) :
       std::copy(E, std::ranges::begin(rg), std::ranges::end(rg),
         std::back_inserter(*this));
   }
@@ -611,10 +603,9 @@ public:
     noexcept(noexcept(std::copy(E, std::ranges::rbegin(rg),
       std::ranges::rend(rg), std::front_inserter(*this))))
   {
-    if (std::is_constant_evaluated())
+    std::is_constant_evaluated() ?
       std::copy(std::ranges::rbegin(rg),
-        std::ranges::rend(rg), std::front_inserter(*this));
-    else
+        std::ranges::rend(rg), std::front_inserter(*this)) :
       std::copy(E, std::ranges::rbegin(rg),
         std::ranges::rend(rg), std::front_inserter(*this));
   }
@@ -693,9 +684,8 @@ public:
     auto const nc(std::min(size_type(
       f_ <= l_ ? std::addressof(a_[N]) - l_ : f_ - l_ - 1), cnt)); // !!!
 
-    if (std::is_constant_evaluated())
-      std::copy_n(p, nc, l_), std::copy_n(p + nc, cnt - nc, a_);
-    else
+    std::is_constant_evaluated() ?
+      std::copy_n(p, nc, l_), std::copy_n(p + nc, cnt - nc, a_) :
       std::copy_n(E, p, nc, l_), std::copy_n(E, p + nc, cnt - nc, a_);
 
     l_ = next_(l_, cnt);
@@ -840,9 +830,8 @@ constexpr void copy(array<T, S, M, E> const& a, T* p) noexcept
   {
     if (i == j) break;
 
-    if (std::is_constant_evaluated())
-      std::copy(i, j, p);
-    else
+    std::is_constant_evaluated() ?
+      std::copy(i, j, p) :
       std::copy(EX, i, j, p);
 
     p += j - i;
@@ -859,10 +848,11 @@ constexpr void copy(array<T, S, M, E> const& a, T* p,
 
     auto const nc(std::min(decltype(sz)(j - i), sz));
     sz -= nc;
-    if (std::is_constant_evaluated())
-      std::copy_n(i, nc, p);
-    else
+
+    std::is_constant_evaluated() ?
+      std::copy_n(i, nc, p) :
       std::copy_n(EX, i, nc, p);
+
     p += nc;
   }
 }
