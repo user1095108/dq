@@ -79,12 +79,6 @@ public:
   constexpr arrayiterator& operator=(arrayiterator const&) = default;
   constexpr arrayiterator& operator=(arrayiterator&&) = default;
 
-  constexpr arrayiterator& operator=(iterator_t const& o) noexcept
-    requires(std::is_const_v<T>)
-  {
-    a_ = o.a_; n_ = o.n_; return *this;
-  }
-
   // conversion to bool
   constexpr explicit operator bool() const noexcept { return n_ != a_->l_; }
 
