@@ -803,26 +803,28 @@ constexpr auto find(array<T, S, M, E> const& c, T const k)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+template <auto EX = std::execution::unseq>
 constexpr auto operator==(std::ranges::input_range auto const& l,
   std::ranges::input_range auto const& r)
-  noexcept(noexcept(std::equal(std::cbegin(l), std::cend(l), std::cbegin(r),
-    std::cend(r))))
+  noexcept(noexcept(std::equal(EX, std::begin(l), std::end(l), std::begin(r),
+    std::end(r))))
   requires(requires{std::remove_cvref_t<decltype(l)>::ca_array_tag;} ||
     requires{std::remove_cvref_t<decltype(r)>::ca_array_tag;})
 {
-  return std::equal(std::cbegin(l), std::cend(l), std::cbegin(r),
-    std::cend(r));
+  return std::is_constant_evaluated() ?
+    std::equal(std::begin(l), std::end(l), std::begin(r), std::end(r)) :
+    std::equal(EX, std::begin(l), std::end(l), std::begin(r), std::end(r));
 }
 
 constexpr auto operator<=>(std::ranges::input_range auto const& l,
   std::ranges::input_range auto const& r)
-  noexcept(noexcept(std::lexicographical_compare_three_way(std::cbegin(l),
-    std::cend(l), std::cbegin(r), std::cend(r))))
+  noexcept(noexcept(std::lexicographical_compare_three_way(std::begin(l),
+    std::end(l), std::begin(r), std::end(r))))
   requires(requires{std::remove_cvref_t<decltype(l)>::ca_array_tag;} ||
     requires{std::remove_cvref_t<decltype(r)>::ca_array_tag;})
 {
-  return std::lexicographical_compare_three_way(std::cbegin(l), std::cend(l),
-    std::cbegin(r), std::cend(r));
+  return std::lexicographical_compare_three_way(std::begin(l), std::end(l),
+    std::begin(r), std::end(r));
 }
 
 template <auto EX = std::execution::unseq, typename T, auto S, auto M, auto E>

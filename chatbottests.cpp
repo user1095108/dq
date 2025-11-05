@@ -326,15 +326,15 @@ void test1() {
 
   // Test insert
   dq.insert(dq.begin() + 2, 6);
-  assert((dq == dq::array<int, 20>{1, 2, 6, 3, 4, 5}));
+  assert((dq == (int[]){1, 2, 6, 3, 4, 5}));
 
   // Test emplace
   dq.emplace(dq.begin() + 3, 7);
-  assert((dq == dq::array<int, 20>{1, 2, 6, 7, 3, 4, 5}));
+  assert((dq == (int[]){1, 2, 6, 7, 3, 4, 5}));
 
   // Test erase
   dq.erase(dq.begin() + 2, dq.begin() + 4);
-  assert((dq == dq::array<int, 20>{1, 2, 3, 4, 5}));
+  assert((dq == (int[]){1, 2, 3, 4, 5}));
 
   // Test clear
   dq.clear();
@@ -420,8 +420,8 @@ void test1() {
 
   // Test swap
   dq1.swap(dq2);
-  assert((dq1 == dq::array<int, 10>{4, 5, 6, 7}));
-  assert((dq2 == dq::array<int, 10>{1, 2, 3}));
+  assert((dq1 == (int[]){4, 5, 6, 7}));
+  assert((dq2 == (int[]){1, 2, 3}));
   }
 
   {
@@ -444,7 +444,7 @@ void test1() {
   // Test resize
   dq.resize(3);
   assert(dq.size() == 3);
-  assert((dq == dq::array<int, 10>{1, 2, 3}));
+  assert((dq == (int[]){1, 2, 3}));
 
   dq.resize(5);
   assert(dq.size() == 5);
@@ -465,7 +465,7 @@ void test1() {
 
   // Test insert
   dq.insert(dq.begin() + 2, 6);
-  assert((dq == dq::array<int, 10>{1, 2, 6, 3, 4, 5}));
+  assert((dq == (int[]){1, 2, 6, 3, 4, 5}));
   }
 
   {
@@ -473,7 +473,7 @@ void test1() {
 
   // Test emplace
   dq.emplace(dq.begin() + 2, 6);
-  assert((dq == dq::array<int, 10>{1, 2, 6, 3, 4, 5}));
+  assert((dq == (int[]){1, 2, 6, 3, 4, 5}));
   }
 
   {
@@ -481,7 +481,7 @@ void test1() {
 
   // Test erase
   dq.erase(dq.begin() + 2, dq.begin() + 4);
-  assert((dq == dq::array<int, 10>{1, 2, 5}));
+  assert((dq == (int[]){1, 2, 5}));
   }
 
   {
@@ -490,7 +490,7 @@ void test1() {
 
   // Test insert
   dq.insert(dq.begin() + 2, to_insert.begin(), to_insert.end());
-  assert((dq == dq::array<int, 10>{1, 2, 3, 4, 5}));
+  assert((dq == (int[]){1, 2, 3, 4, 5}));
   }
 
   {
@@ -498,10 +498,10 @@ void test1() {
 
   // Test erase
   dq.erase(dq.begin());
-  assert((dq == dq::array<int, 10>{1, 2, 3, 4, 5, 6, 7, 8, 9}));
+  assert((dq == (int[]){1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
   dq.erase(dq.begin() + 2, dq.begin() + 5);
-  assert((dq == dq::array<int, 10>{1, 2, 6, 7, 8, 9}));
+  assert((dq == (int[]){1, 2, 6, 7, 8, 9}));
 
   //
   for (auto it = dq.begin(); it != dq.end();) {
@@ -523,10 +523,10 @@ void test1() {
 
   // Test erase
   dq.erase(dq.begin() + 3);
-  assert((dq == dq::array<int, 10>{0, 1, 2, 4, 5, 6, 7, 8, 9}));
+  assert((dq == (int[]){0, 1, 2, 4, 5, 6, 7, 8, 9}));
 
   dq.erase(dq.end() - 1);
-  assert((dq == dq::array<int, 10>{0, 1, 2, 4, 5, 6, 7, 8}));
+  assert((dq == (int[]){0, 1, 2, 4, 5, 6, 7, 8}));
   }
 
   {
@@ -764,7 +764,7 @@ void test1() {
   {
   dq::array<int, 20> dq{1, 2, 2, 3, 3, 3, 4, 4, 4, 4};
   dq.erase(std::unique(dq.begin(), dq.end()), dq.end());
-  assert((dq == dq::array<int, 20>{1, 2, 3, 4}));
+  assert((dq == (int[]){1, 2, 3, 4}));
   }
 
   {
@@ -772,7 +772,7 @@ void test1() {
   dq::array<int, 10> l = {-1, -2, -3};
   auto pos = std::next(d.begin(), 2);
   d.insert(pos, l.begin(), l.end());
-  assert((d == dq::array<int, 10>{1, 2, -1, -2, -3, 3, 4}));
+  assert((d == (int[]){1, 2, -1, -2, -3, 3, 4}));
   }
 
   {
@@ -792,7 +792,7 @@ void test1() {
   std::reverse(mdq.begin(), mdq.end());
 
   // Expected reversed deque
-  assert((mdq == dq::array<int, 10>{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}));
+  assert((mdq == (int[]){10, 9, 8, 7, 6, 5, 4, 3, 2, 1}));
   }
 
   {
@@ -882,22 +882,22 @@ void test1() {
   // Test erase() with a single element
   dq::array<int, 10> deque = {1, 2, 3, 4, 5};
   deque.erase(deque.begin() + 2);
-  assert((deque == dq::array<int, 10>{1, 2, 4, 5}));
+  assert((deque == (int[]){1, 2, 4, 5}));
 
   // Test erase() with a range of elements
   deque = {1, 2, 3, 4, 5};
   deque.erase(deque.begin() + 1, deque.begin() + 3);
-  assert((deque == dq::array<int, 10>{1, 4, 5}));
+  assert((deque == (int[]){1, 4, 5}));
 
   // Test erase() with a range of elements that includes the first element
   deque = {1, 2, 3, 4, 5};
   deque.erase(deque.begin(), deque.begin() + 2);
-  assert((deque == dq::array<int, 10>{3, 4, 5}));
+  assert((deque == (int[]){3, 4, 5}));
 
   // Test erase() with a range of elements that includes the last element
   deque = {1, 2, 3, 4, 5};
   deque.erase(deque.begin() + 3, deque.end());
-  assert((deque == dq::array<int, 10>{1, 2, 3}));
+  assert((deque == (int[]){1, 2, 3}));
 
   // Test erase() with a range of elements that includes the first and last elements
   deque = {1, 2, 3, 4, 5};
@@ -915,15 +915,15 @@ void test1() {
   dq::array<int, 10, dq::NEW> deque1 = {1, 2, 3};
   dq::array<int, 10, dq::NEW> deque2 = {4, 5, 6};
   deque1.swap(deque2);
-  assert((deque1 == dq::array<int, 10>{4, 5, 6}));
-  assert((deque2 == dq::array<int, 10>{1, 2, 3}));
+  assert((deque1 == (int[]){4, 5, 6}));
+  assert((deque2 == (int[]){1, 2, 3}));
 
   // Test swap() with two deques, one of which is empty
   deque1 = {1, 2, 3};
   deque2 = {};
   deque1.swap(deque2);
   assert(deque1.empty());
-  assert((deque2 == dq::array<int, 10>{1, 2, 3}));
+  assert((deque2 == (int[]){1, 2, 3}));
 
   // Test swap() with two deques, both of which are empty
   deque1 = {};
@@ -936,42 +936,42 @@ void test1() {
   deque1 = {1, 2, 3};
   deque2 = {1, 2, 3, 4, 5};
   deque1.swap(deque2);
-  assert((deque1 == dq::array<int, 10>{1, 2, 3, 4, 5}));
-  assert((deque2 == dq::array<int, 10>{1, 2, 3}));
+  assert((deque1 == (int[]){1, 2, 3, 4, 5}));
+  assert((deque2 == (int[]){1, 2, 3}));
   }
 
   {
   // Test insert() with a single element
-  dq::array<int, 10, dq::NEW> deque = {1, 2, 3, 4, 5};
+  dq::array<int, 20, dq::NEW> deque = {1, 2, 3, 4, 5};
   deque.insert(deque.begin() + 2, 6);
-  assert((deque == dq::array<int, 10>{1, 2, 6, 3, 4, 5}));
+  assert((deque == (int[]){1, 2, 6, 3, 4, 5}));
 
   // Test insert() with a range of elements
   deque = {1, 2, 3, 4, 5};
   deque.insert(deque.begin() + 2, {6, 7, 8});
-  assert((deque == dq::array<int, 10>{1, 2, 6, 7, 8, 3, 4, 5}));
+  assert((deque == (int[]){1, 2, 6, 7, 8, 3, 4, 5}));
 
   // Test insert() with a range of elements that includes the first element
   deque = {1, 2, 3, 4, 5};
   deque.insert(deque.begin(), {6, 7, 8});
-  assert((deque == dq::array<int, 10>{6, 7, 8, 1, 2, 3, 4, 5}));
+  assert((deque == (int[]){6, 7, 8, 1, 2, 3, 4, 5}));
 
   // Test insert() with a range of elements that includes the last element
   deque = {1, 2, 3, 4, 5};
   deque.insert(deque.end(), {6, 7, 8});
-  assert((deque == dq::array<int, 10>{1, 2, 3, 4, 5, 6, 7, 8}));
+  assert((deque == (int[]){1, 2, 3, 4, 5, 6, 7, 8}));
 
   // Test insert() with a range of elements that includes the first and last elements
   deque = {1, 2, 3, 4, 5};
   deque.insert(deque.begin(), {6, 7, 8});
   deque.insert(deque.end(), {9, 10, 11});
-  assert((deque == dq::array<int, 10>{6, 7, 8, 1, 2, 3, 4, 5, 9, 10, 11}));
+  assert((deque == (int[]){6, 7, 8, 1, 2, 3, 4, 5, 9, 10, 11}));
 
   // Test insert() with a range of elements that includes the first and last elements, and the deque is empty
   deque = {};
   deque.insert(deque.begin(), {6, 7, 8});
   deque.insert(deque.end(), {9, 10, 11});
-  assert((deque == dq::array<int, 10>{6, 7, 8, 9, 10, 11}));
+  assert((deque == (int[]){6, 7, 8, 9, 10, 11}));
   }
 
   {
@@ -982,17 +982,17 @@ void test1() {
 
   // Test append_range()
   arr.append_range(vec);
-  assert((arr == dq::array<int, 30>{1, 2, 3, 4, 5, 6}));
+  assert((arr == (int[]){1, 2, 3, 4, 5, 6}));
 
   // Test prepend_range()
   arr.prepend_range(vec);
-  assert((arr == dq::array<int, 30>{4, 5, 6, 1, 2, 3, 4, 5, 6}));
+  assert((arr == (int[]){4, 5, 6, 1, 2, 3, 4, 5, 6}));
 
   // Test insert_range()
   auto it = arr.begin();
   std::advance(it, 3); // Move iterator to the 4th element
   arr.insert_range(it, vec);
-  assert((arr == dq::array<int, 30>{4, 5, 6, 4, 5, 6, 1, 2, 3, 4, 5, 6}));
+  assert((arr == (int[]){4, 5, 6, 4, 5, 6, 1, 2, 3, 4, 5, 6}));
   }
 
   {
@@ -1117,7 +1117,7 @@ void test1() {
   d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   dq::erase(d, 5);
   assert(d.size() == 9);
-  assert((d == dq::array<int, 10>{1, 2, 3, 4, 6, 7, 8, 9, 10}));
+  assert((d == (int[]){1, 2, 3, 4, 6, 7, 8, 9, 10}));
   }
 
   {
@@ -1177,7 +1177,7 @@ void test1() {
 
   // Test 1: Erase a range of elements from the deque
   dq.erase(dq.begin() + 2, dq.begin() + 5);
-  assert((dq == decltype(dq){1, 2, 6, 7, 8, 9, 10}));
+  assert((dq == (int[]){1, 2, 6, 7, 8, 9, 10}));
 
   // Test 2: Erase the entire deque
   dq.erase(dq.begin(), dq.end());
@@ -1186,12 +1186,12 @@ void test1() {
   // Test 3: Erase a single element from the deque
   dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   dq.erase(dq.begin() + 4); // Erase '5'
-  assert((dq == decltype(dq){1, 2, 3, 4, 6, 7, 8, 9, 10}));
+  assert((dq == (int[]){1, 2, 3, 4, 6, 7, 8, 9, 10}));
 
   // Test 4: Erase a range with the same start and end iterator
   auto it = dq.begin() + 3;
   dq.erase(it, it);
-  assert((dq == decltype(dq){1, 2, 3, 4, 6, 7, 8, 9, 10}));
+  assert((dq == (int[]){1, 2, 3, 4, 6, 7, 8, 9, 10}));
 
   // Test 5: Erase a range that encompasses the entire deque
   dq.erase(dq.begin(), dq.end());
@@ -1200,7 +1200,7 @@ void test1() {
   // Test 6: Erase an empty range from the deque
   dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   dq.erase(dq.end(), dq.end());
-  assert((dq == decltype(dq){1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+  assert((dq == (int[]){1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
   }
 
   {
@@ -1372,13 +1372,13 @@ void test1() {
     int raw[] = {9,8,7};
     dq::array<int, 10> dq = {1,2,3};
     dq.insert(dq.begin()+1, std::begin(raw), std::end(raw));
-    assert((dq == dq::array<int,10>{1,9,8,7,2,3}));
+    assert((dq == (int[]){1,9,8,7,2,3}));
   }
 
   { // test_assign_init_list
     dq::array<int, 10> dq;
     dq.assign({10,20,30});
-    assert((dq == dq::array<int,10>{10,20,30}));
+    assert((dq == (int[]){10,20,30}));
     assert(dq.size() == 3);
   }
 
@@ -1465,10 +1465,10 @@ void test1() {
   { // test_rotate
     dq::array<int, 10> dq = {1,2,3,4,5};
     std::rotate(dq.begin(), dq.begin()+2, dq.end()); // 3,4,5,1,2
-    assert((dq == dq::array<int,10>{3,4,5,1,2}));
+    assert((dq == (int[]){3,4,5,1,2}));
 
     std::rotate(dq.rbegin(), dq.rbegin()+2, dq.rend()); // reverse rotate
-    assert((dq == dq::array<int,10>{1,2,3,4,5}));
+    assert((dq == (int[]){1,2,3,4,5}));
   }
 
   {
