@@ -47,7 +47,7 @@ public:
   using const_iterator = arrayiterator<T const, array>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-  enum {ca_array_tag};
+  enum {dq_array_tag};
 
 //private:
   enum : size_type { N = CAP + 1 };
@@ -758,7 +758,7 @@ constexpr auto erase(array<T, S, M, E>& c, T const k)
 constexpr auto find_if(auto&& c, auto pred)
   noexcept(noexcept(pred(*c.cbegin()))) ->
   decltype(c.end())
-  requires(requires{std::remove_cvref_t<decltype(c)>::ca_array_tag;})
+  requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   for (auto [i, j]: c.split())
   {
@@ -808,8 +808,8 @@ constexpr auto operator==(std::ranges::input_range auto const& l,
   std::ranges::input_range auto const& r)
   noexcept(noexcept(std::equal(EX, std::begin(l), std::end(l), std::begin(r),
     std::end(r))))
-  requires(requires{std::remove_cvref_t<decltype(l)>::ca_array_tag;} ||
-    requires{std::remove_cvref_t<decltype(r)>::ca_array_tag;})
+  requires(requires{std::remove_cvref_t<decltype(l)>::dq_array_tag;} ||
+    requires{std::remove_cvref_t<decltype(r)>::dq_array_tag;})
 {
   return std::is_constant_evaluated() ?
     std::equal(std::begin(l), std::end(l), std::begin(r), std::end(r)) :
@@ -820,8 +820,8 @@ constexpr auto operator<=>(std::ranges::input_range auto const& l,
   std::ranges::input_range auto const& r)
   noexcept(noexcept(std::lexicographical_compare_three_way(std::begin(l),
     std::end(l), std::begin(r), std::end(r))))
-  requires(requires{std::remove_cvref_t<decltype(l)>::ca_array_tag;} ||
-    requires{std::remove_cvref_t<decltype(r)>::ca_array_tag;})
+  requires(requires{std::remove_cvref_t<decltype(l)>::dq_array_tag;} ||
+    requires{std::remove_cvref_t<decltype(r)>::dq_array_tag;})
 {
   return std::lexicographical_compare_three_way(std::begin(l), std::end(l),
     std::begin(r), std::end(r));
