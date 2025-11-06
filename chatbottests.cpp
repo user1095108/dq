@@ -1335,7 +1335,7 @@ void test1() {
     dq::array<int, 10> dq = {1,2,3,4,5,6};
     int threshold = 4;
     dq::erase_if(dq, [threshold](int x){ return x > threshold; });
-    assert((dq == dq::array<int,10>{1,2,3,4}));
+    assert((dq == (int[]){1,2,3,4}));
   }
 
   { // test_spsc
@@ -1386,8 +1386,8 @@ void test1() {
     dq::array<std::string, 5> a = {"a","b"};
     dq::array<std::string, 5> b = {"x","y","z"};
     std::swap(a,b);
-    assert((a == dq::array<std::string,5>{"x","y","z"}));
-    assert((b == dq::array<std::string,5>{"a","b"}));
+    assert((a == (std::string[]){"x","y","z"}));
+    assert((b == (std::string[]){"a","b"}));
   }
 
   { // test_inner_product
