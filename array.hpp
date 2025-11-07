@@ -827,7 +827,7 @@ constexpr auto operator<=>(std::ranges::input_range auto const& l,
     std::begin(r), std::end(r));
 }
 
-template <auto EX = std::execution::unseq, typename T, auto S, auto M, auto E>
+template <typename T, auto S, auto M, auto E>
 constexpr void copy(array<T, S, M, E> const& a, T* p) noexcept
 { // copies from container to a memory region
   for (auto const [i, j]: a.split()) // !!!
@@ -836,13 +836,13 @@ constexpr void copy(array<T, S, M, E> const& a, T* p) noexcept
 
     std::is_constant_evaluated() ?
       std::copy(i, j, p) :
-      std::copy(EX, i, j, p);
+      std::copy(E, i, j, p);
 
     p += j - i;
   }
 }
 
-template <auto EX = std::execution::unseq, typename T, auto S, auto M, auto E>
+template <typename T, auto S, auto M, auto E>
 constexpr void copy(array<T, S, M, E> const& a, T* p,
   typename array<T, S, M, E>::size_type sz) noexcept
 { // copies from container to a memory region
@@ -855,14 +855,17 @@ constexpr void copy(array<T, S, M, E> const& a, T* p,
 
     std::is_constant_evaluated() ?
       std::copy_n(i, nc, p) :
-      std::copy_n(EX, i, nc, p);
+      std::copy_n(E, i, nc, p);
 
     p += nc;
   }
 }
 
-template <typename T, auto S, auto M>
-constexpr void swap(array<T, S, M>& l, decltype(l) r) noexcept { l.swap(r); }
+template <typename T, auto S, auto M, auto E>
+constexpr void swap(array<T, S, M, E>& l, decltype(l) r) noexcept
+{
+  l.swap(r);
+}
 
 }
 
