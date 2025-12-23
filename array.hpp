@@ -716,7 +716,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////
 template <typename T, auto S, auto M, auto E>
-constexpr auto erase_if(array<T, S, M, E>& c, auto&& pred)
+constexpr auto erase_if(array<T, S, M, E>& c, auto pred)
   noexcept(noexcept(c.erase(c.cbegin()), pred(*c.cbegin())))
 {
   typename std::remove_reference_t<decltype(c)>::size_type r{};
