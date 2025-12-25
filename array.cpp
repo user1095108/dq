@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "array.hpp"
 
@@ -41,6 +42,12 @@ int main()
   std::cout << std::distance(ca.cbegin(), ca.cend()) << " : " << ca.size() << " " << ca[0] << std::endl;
 
   erase(ca, 10, 9, 8); // erase as much as you like
+
+  dq::array<std::unique_ptr<int>, 4> m(dq::multi, std::make_unique<int>(2));
+
+  m.push_back(std::make_unique<int>(1));
+  m.insert(dq::multi, m.begin(), std::make_unique<int>(3), std::make_unique<int>(4));
+  m.insert(dq::multi, m.end(), std::make_unique<int>(3), std::make_unique<int>(4));
 
   return 0;
 }

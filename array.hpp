@@ -491,7 +491,10 @@ public:
     { // [f, i) is moved backwards
       auto const f(f_); f_ = prev_(f);
 
-      j.n_ = std::move(E, {this, f}, i, begin()).n_;
+      j.n_ = std::move(E,
+        iterator{this, f},
+        iterator{this, i.n_},
+        begin()).n_;
     }
     else
     { // [j, l) is moved forwards
@@ -499,8 +502,9 @@ public:
 
       //std::move_backward(j, {this, l}, end());
       std::move(E,
-        const_reverse_iterator(const_iterator{this, l}),
-        const_reverse_iterator(i), rbegin());
+        reverse_iterator(iterator(this, l)),
+        reverse_iterator(iterator(this, i.n_)),
+        rbegin());
     }
 
     //
