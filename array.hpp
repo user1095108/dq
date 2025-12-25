@@ -491,20 +491,30 @@ public:
     { // [f, i) is moved backwards
       auto const f(f_); f_ = prev_(f);
 
-      j.n_ = std::move(E,
-        iterator{this, f},
-        iterator{this, i.n_},
-        begin()).n_;
+      std::is_constant_evaluated() ?
+        j.n_ = std::move(
+          iterator{this, f},
+          iterator{this, i.n_},
+          begin()).n_ :
+        j.n_ = std::move(E,
+          iterator{this, f},
+          iterator{this, i.n_},
+          begin()).n_;
     }
     else
     { // [j, l) is moved forwards
       j.n_ = i.n_; auto const l(l_); l_ = next_(l); 
 
       //std::move_backward(j, {this, l}, end());
-      std::move(E,
-        reverse_iterator(iterator(this, l)),
-        reverse_iterator(iterator(this, i.n_)),
-        rbegin());
+      std::is_constant_evaluated() ?
+        std::move(
+          reverse_iterator(iterator(this, l)),
+          reverse_iterator(iterator(this, i.n_)),
+          rbegin()) :
+        std::move(E,
+          reverse_iterator(iterator(this, l)),
+          reverse_iterator(iterator(this, i.n_)),
+          rbegin());
     }
 
     //
