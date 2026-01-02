@@ -451,28 +451,36 @@ public:
   {
     iterator const ii{this, i.n_}, jj{this, next_(i.n_)};
 
-    return distance_(f_, ii.n_) <= distance_(jj.n_, l_) ?
-      //f_ = std::move_backward(begin(), ii, jj).n_, jj:
-      f_ = std::move(E, reverse_iterator(ii), rend(),
-        reverse_iterator(jj)).base().n_, jj:
-      (l_ = std::move(E, jj, end(), ii).n_, ii);
+    return std::is_constant_evaluated() ?
+      distance_(f_, ii.n_) <= distance_(jj.n_, l_) ?
+        //f_ = std::move_backward(begin(), ii, jj).n_, jj:
+        f_ = std::move(reverse_iterator(ii), rend(),
+          reverse_iterator(jj)).base().n_, jj :
+        (l_ = std::move(jj, end(), ii).n_, ii) :
+      distance_(f_, ii.n_) <= distance_(jj.n_, l_) ?
+        f_ = std::move(E, reverse_iterator(ii), rend(),
+          reverse_iterator(jj)).base().n_, jj :
+        (l_ = std::move(E, jj, end(), ii).n_, ii);
   }
 
   constexpr iterator erase(const_iterator const i, const_iterator const j)
     noexcept(noexcept(std::move(E, i, i, i)))
   {
     if (iterator const ii{this, i.n_}; i == j) [[unlikely]]
-    {
       return ii;
-    }
     else [[likely]]
     {
       decltype(ii) jj{this, j.n_};
 
-      return distance_(f_, ii.n_) <= distance_(jj.n_, l_) ?
-        f_ = std::move(E, reverse_iterator(ii), rend(),
-          reverse_iterator(jj)).base().n_, jj:
-        (l_ = std::move(E, jj, end(), ii).n_, ii);
+      return std::is_constant_evaluated() ?
+        distance_(f_, ii.n_) <= distance_(jj.n_, l_) ?
+          f_ = std::move(reverse_iterator(ii), rend(),
+            reverse_iterator(jj)).base().n_, jj :
+          (l_ = std::move(jj, end(), ii).n_, ii) :
+        distance_(f_, ii.n_) <= distance_(jj.n_, l_) ?
+          f_ = std::move(E, reverse_iterator(ii), rend(),
+            reverse_iterator(jj)).base().n_, jj :
+          (l_ = std::move(E, jj, end(), ii).n_, ii);
     }
   }
 
