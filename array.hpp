@@ -573,7 +573,7 @@ public:
       j,
       k,
       [&](auto&& v) noexcept(noexcept(
-        insert(i, std::forward<decltype(v)>(v))))
+        ++n, ++(i = insert(i, std::forward<decltype(v)>(v)))))
       {
         ++n, ++(i = insert(i, std::forward<decltype(v)>(v)));
       }
