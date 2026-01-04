@@ -692,7 +692,7 @@ public:
     cnt = std::min(cnt, capacity() - size());
 
     size_type const nc(std::min(f_ <= l_ ?
-      size_type(std::addressof(a_[N - 1]) - l_) + 1 :
+      -size_type(l_ - std::addressof(a_[N])) :
       size_type(f_ - l_), cnt)); // !!!
 
     std::is_constant_evaluated() ?
