@@ -766,9 +766,8 @@ constexpr auto erase(array<T, S, M, E>& c, T const k)
   return erase<0>(c, k);
 }
 
-constexpr auto find_if(auto&& c, auto pred)
-  noexcept(noexcept(pred(*c.cbegin()))) ->
-  decltype(c.end())
+constexpr auto find_if(auto& c, auto pred)
+  noexcept(noexcept(pred(*c.cbegin()))) -> decltype(c.end())
   requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   for (auto [i, j]: c.split())
@@ -788,7 +787,8 @@ constexpr auto find_if(auto&& c, auto pred)
 template <int = 0>
 constexpr auto find(auto&& c, auto const& ...k)
   noexcept(noexcept(((*c.cbegin() == k), ...)))
-  requires(!!sizeof...(k))
+  requires(!!sizeof...(k) &&
+    requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   return find_if(
       std::forward<decltype(c)>(c),
@@ -799,16 +799,11 @@ constexpr auto find(auto&& c, auto const& ...k)
     );
 }
 
-template <typename T, auto S, auto M, auto E>
-constexpr auto find(array<T, S, M, E>& c, T const k)
+template <typename T>
+constexpr auto find(auto& c,
+  typename std::remove_cvref_t<decltype(c)>::value_type const k)
   noexcept(noexcept(find<0>(c, k)))
-{
-  return find<0>(c, k);
-}
-
-template <typename T, auto S, auto M, auto E>
-constexpr auto find(array<T, S, M, E> const& c, T const k)
-  noexcept(noexcept(find<0>(c, k)))
+  requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   return find<0>(c, k);
 }
