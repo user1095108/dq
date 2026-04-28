@@ -706,8 +706,6 @@ public:
 
   template <class Cmp = std::less<value_type>>
   constexpr void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
-    noexcept(noexcept(std::sort(E, i.n_, j.n_, cmp)) ||
-      noexcept(std::inplace_merge(E, i.n_, a_, j.n_)))
   {
     if (std::is_constant_evaluated())
       if (i.n_ <= j.n_)
