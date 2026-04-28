@@ -19,7 +19,7 @@ void randomize(auto& ...a) noexcept
 
 int main()
 {
-  constexpr std::size_t N(200000);
+  constexpr std::size_t N(1000000);
 
   dq::array<int, N, dq::NEW> a;
 
@@ -31,6 +31,7 @@ int main()
   
   //
   std::iota(a.rbegin(), a.rend(), 0);
+  assert(!std::is_sorted(a.cbegin(), a.cend()));
 
   start = std::chrono::high_resolution_clock::now();
   std::sort(std::execution::unseq, a.begin(), a.end());
@@ -41,6 +42,7 @@ int main()
 
   //
   std::iota(a.rbegin(), a.rend(), 0);
+  assert(!std::is_sorted(a.cbegin(), a.cend()));
 
   start = std::chrono::high_resolution_clock::now();
   a.sort(a.begin(), a.end());

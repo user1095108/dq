@@ -715,14 +715,14 @@ public:
       else
         std::sort(i.n_, std::addressof(a_[N]), cmp),
         std::sort(a_, j.n_, cmp),
-        std::inplace_merge(i.n_, a_, j.n_);
+        std::inplace_merge(iterator{this, i.n_}, {this, a_}, {this, j.n_});
     else
       if (i.n_ <= j.n_)
         std::sort(E, i.n_, j.n_, cmp);
       else
         std::sort(E, i.n_, std::addressof(a_[N]), cmp),
         std::sort(E, a_, j.n_, cmp),
-        std::inplace_merge(E, i.n_, a_, j.n_);
+        std::inplace_merge(E, iterator{this, i.n_}, {this, a_}, {this, j.n_});
   }
 
   constexpr std::array<std::array<T*, 2>, 2> split() noexcept
