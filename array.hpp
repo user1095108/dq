@@ -703,6 +703,16 @@ public:
 
     return cnt;
   }
+  template <class Cmp = std::less<value_type>>
+  void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
+  {
+    if (i.n_ <= j.n_)
+      std::sort(E, i.n_, j.n_, cmp);
+    else
+      std::sort(E, i.n_, std::addressof(a_[N]), cmp),
+      std::sort(E, a_, j.n_, cmp),
+      std::inplace_merge(E, i.n_, a_, j.n_);
+  }
 
   constexpr std::array<std::array<T*, 2>, 2> split() noexcept
   {
@@ -866,6 +876,7 @@ constexpr void copy(array<T, S, M, E> const& a, T* p,
     p += nc;
   }
 }
+
 
 template <typename T, auto S, auto M, auto E>
 constexpr void swap(array<T, S, M, E>& l, decltype(l) r) noexcept
