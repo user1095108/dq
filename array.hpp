@@ -705,6 +705,8 @@ public:
   }
   template <class Cmp = std::less<value_type>>
   void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
+    noexcept(noexcept(std::sort(E, i.n_, j.n_, cmp)) ||
+      noexcept(std::inplace_merge(E, i.n_, a_, j.n_)))
   {
     if (i.n_ <= j.n_)
       std::sort(E, i.n_, j.n_, cmp);
