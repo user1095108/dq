@@ -703,17 +703,26 @@ public:
 
     return cnt;
   }
+
   template <class Cmp = std::less<value_type>>
-  void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
+  constexpr void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
     noexcept(noexcept(std::sort(E, i.n_, j.n_, cmp)) ||
       noexcept(std::inplace_merge(E, i.n_, a_, j.n_)))
   {
-    if (i.n_ <= j.n_)
-      std::sort(E, i.n_, j.n_, cmp);
+    if (std::is_constant_evaluated())
+      if (i.n_ <= j.n_)
+        std::sort(i.n_, j.n_, cmp);
+      else
+        std::sort(i.n_, std::addressof(a_[N]), cmp),
+        std::sort(a_, j.n_, cmp),
+        std::inplace_merge(i.n_, a_, j.n_);
     else
-      std::sort(E, i.n_, std::addressof(a_[N]), cmp),
-      std::sort(E, a_, j.n_, cmp),
-      std::inplace_merge(E, i.n_, a_, j.n_);
+      if (i.n_ <= j.n_)
+        std::sort(E, i.n_, j.n_, cmp);
+      else
+        std::sort(E, i.n_, std::addressof(a_[N]), cmp),
+        std::sort(E, a_, j.n_, cmp),
+        std::inplace_merge(E, i.n_, a_, j.n_);
   }
 
   constexpr std::array<std::array<T*, 2>, 2> split() noexcept
