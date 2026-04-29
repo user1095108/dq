@@ -57,19 +57,19 @@ public:
 
   constexpr auto next_(auto const p) const noexcept
   {
-    return p == std::addressof(a_[N - 1]) ?
+    return p == std::addressof(a_[CAP]) ?
       decltype(p)(a_) : p + difference_type(1);
   }
 
   constexpr auto prev_(auto const p) const noexcept
   {
     return p == a_ ?
-      decltype(p)(std::addressof(a_[N - 1])) : p - difference_type(1);
+      decltype(p)(std::addressof(a_[CAP])) : p - difference_type(1);
   }
 
   constexpr auto next_(auto const p, size_type const n) const noexcept
   { // 0 <= n < N
-    return size_type(std::addressof(a_[N - 1]) - p) < n ? p - (N - n) : p + n;
+    return size_type(std::addressof(a_[CAP]) - p) < n ? p - (N - n) : p + n;
   }
 
   constexpr auto prev_(auto const p, size_type const n) const noexcept
@@ -79,7 +79,7 @@ public:
 
   constexpr auto adv_(auto const p, difference_type const n) const noexcept
   { // -N < n < N
-    return std::addressof(a_[N - 1]) - p < n ? // p + n > &a_[N-1]
+    return std::addressof(a_[CAP]) - p < n ? // p + n > &a_[N-1]
       p + (n - difference_type(N)) :
       a_ - p > n ? // p + n < a_
       p + (difference_type(N) + n) :
@@ -88,7 +88,7 @@ public:
 
   constexpr auto bck_(auto const p, difference_type const n) const noexcept
   { // -N < n < N
-    return p - std::addressof(a_[N - 1]) > n ? // p - n > &a_[N-1]
+    return p - std::addressof(a_[CAP]) > n ? // p - n > &a_[N-1]
       p - (n + difference_type(N)) :
       p - a_ < n ? // p - n < a_
       p + (difference_type(N) - n) :
@@ -714,7 +714,7 @@ public:
       {
         std::sort(i.n_, std::addressof(a_[N]), cmp);
         std::sort(a_, j.n_, cmp);
-        if ((j.n_ != a_) && cmp(*a_, a_[N - 1]))
+        if ((j.n_ != a_) && cmp(*a_, a_[CAP]))
           std::inplace_merge(iterator{this, i.n_}, {this, a_},
             {this, j.n_}, cmp);
       }
@@ -725,7 +725,7 @@ public:
       {
         std::sort(E, i.n_, std::addressof(a_[N]), cmp);
         std::sort(E, a_, j.n_, cmp);
-        if ((j.n_ != a_) && cmp(*a_, a_[N - 1]))
+        if ((j.n_ != a_) && cmp(*a_, a_[CAP]))
           std::inplace_merge(E, iterator{this, i.n_}, {this, a_},
             {this, j.n_}, cmp);
       }
