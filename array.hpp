@@ -711,18 +711,24 @@ public:
       if (i.n_ <= j.n_)
         std::sort(i.n_, j.n_, cmp);
       else
-        std::sort(i.n_, std::addressof(a_[N]), cmp),
-        std::sort(a_, j.n_, cmp),
-        std::inplace_merge(iterator{this, i.n_}, {this, a_},
-          {this, j.n_}, cmp);
+      {
+        std::sort(i.n_, std::addressof(a_[N]), cmp);
+        std::sort(a_, j.n_, cmp);
+        if (cmp(*a_, a_[N - 1]))
+          std::inplace_merge(iterator{this, i.n_}, {this, a_},
+            {this, j.n_}, cmp);
+      }
     else
       if (i.n_ <= j.n_)
         std::sort(E, i.n_, j.n_, cmp);
       else
-        std::sort(E, i.n_, std::addressof(a_[N]), cmp),
-        std::sort(E, a_, j.n_, cmp),
-        std::inplace_merge(E, iterator{this, i.n_}, {this, a_},
-          {this, j.n_}, cmp);
+      {
+        std::sort(E, i.n_, std::addressof(a_[N]), cmp);
+        std::sort(E, a_, j.n_, cmp);
+        if (cmp(*a_, a_[N - 1]))
+          std::inplace_merge(E, iterator{this, i.n_}, {this, a_},
+            {this, j.n_}, cmp);
+      }
   }
 
   constexpr std::array<std::array<T*, 2>, 2> split() noexcept

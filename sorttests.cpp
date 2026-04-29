@@ -28,7 +28,7 @@ int main()
 
   decltype(std::chrono::high_resolution_clock::now()) start, end;
   a.resize(N);
-  
+
   //
   std::iota(a.rbegin(), a.rend(), 0);
   assert(!std::is_sorted(a.cbegin(), a.cend()));
