@@ -708,7 +708,7 @@ public:
   constexpr void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
   {
     if (std::is_constant_evaluated())
-      if (i.n_ <= j.n_)
+      if ((i.n_ <= j.n_) || (a_ == j.n_))
         std::sort(i.n_, j.n_, cmp);
       else
       {
@@ -719,7 +719,7 @@ public:
             {this, j.n_}, cmp);
       }
     else
-      if (i.n_ <= j.n_)
+      if ((i.n_ <= j.n_) || (a_ == j.n_))
         std::sort(E, i.n_, j.n_, cmp);
       else
       {
