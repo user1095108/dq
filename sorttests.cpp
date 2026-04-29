@@ -35,8 +35,8 @@ int main()
 
   start = std::chrono::high_resolution_clock::now();
   std::sort(std::execution::unseq, a.begin(), a.end());
-  assert(std::is_sorted(a.cbegin(), a.cend()));
   end = std::chrono::high_resolution_clock::now();
+  assert(std::is_sorted(a.cbegin(), a.cend()));
 
   std::chrono::duration<double> const d0(end - start);
 
@@ -46,8 +46,8 @@ int main()
 
   start = std::chrono::high_resolution_clock::now();
   a.sort(a.begin(), a.end());
-  assert(std::is_sorted(a.cbegin(), a.cend()));
   end = std::chrono::high_resolution_clock::now();
+  assert(std::is_sorted(a.cbegin(), a.cend()));
 
   std::chrono::duration<double> const d1(end - start);
 
