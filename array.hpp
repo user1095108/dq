@@ -736,7 +736,7 @@ public:
     using res_t = decltype(split());
     using pair_t = res_t::value_type;
 
-    return f_ <= l_ ? res_t{pair_t{f_, l_}} :
+    return f_ <= l_ ? res_t{pair_t{f_, l_}, pair_t{}} :
       res_t{pair_t{f_, std::addressof(a_[N])}, pair_t{a_, l_}};
   }
 
@@ -745,7 +745,7 @@ public:
     using res_t = decltype(split());
     using pair_t = res_t::value_type;
 
-    return f_ <= l_ ? res_t{pair_t{f_, l_}} :
+    return f_ <= l_ ? res_t{pair_t{f_, l_}, pair_t{}} :
       res_t{pair_t{f_, std::addressof(a_[N])}, pair_t{a_, l_}};
   }
 
