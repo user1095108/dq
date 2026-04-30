@@ -759,7 +759,7 @@ constexpr auto erase_if(array<T, S, M, E>& c, auto pred)
 {
   typename std::remove_reference_t<decltype(c)>::size_type r{};
 
-  for (auto&& [i, j]: c.csplit())
+  for (auto [i, j]: c.csplit())
   {
     if (i == j) break;
 
@@ -893,7 +893,6 @@ constexpr void copy(array<T, S, M, E> const& a, T* p,
     p += nc;
   }
 }
-
 
 template <typename T, auto S, auto M, auto E>
 constexpr void swap(array<T, S, M, E>& l, decltype(l) r) noexcept
