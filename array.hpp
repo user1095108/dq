@@ -706,7 +706,7 @@ public:
   }
 
   template <class Cmp = std::less<value_type>>
-  constexpr void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
+  void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
   {
     if (std::is_constant_evaluated())
       if (i.n_ <= j.n_)

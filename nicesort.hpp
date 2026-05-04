@@ -1,5 +1,6 @@
 #include <climits>
 #include <algorithm>
+#include <bit>
 #include <execution>
 #include <iterator>
 
