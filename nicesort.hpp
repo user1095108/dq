@@ -32,7 +32,6 @@ void insertion_sort(It const i, It const j, auto cmp)
 
 template <auto E, typename It>
 void merge(It& a, It& b, It& c, It& d, auto&& cmp)
-  noexcept(noexcept(cmp(*a, *a)))
 { // merge runs [a, b) and [c, d)
   // assert(b == c);
   if (cmp(*b, *(b - 1)))
@@ -45,7 +44,6 @@ template <auto E = std::execution::unseq,
   typename It,
   class Cmp = std::less<typename std::iterator_traits<It>::value_type>>
 void sort(It i, It const e, Cmp&& cmp = Cmp())
-  noexcept(noexcept(cmp(*i, *i)))
 {
   std::pair<It, It> runs[sizeof(unsigned) * CHAR_BIT];
 
