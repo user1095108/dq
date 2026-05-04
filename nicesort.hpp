@@ -57,10 +57,12 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 
   for (auto sz(std::distance(i, e)); e != i;)
   {
+    using U = decltype(sz);
+
     auto j(i);
 
     // advance j
-    std::advance(j, sz >= int(bsize0) ? sz -= int(bsize0), int(bsize0) : sz);
+    std::advance(j, sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz);
 
     insertion_sort(i, j, cmp); // sort run [i, j)
 
