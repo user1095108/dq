@@ -17,21 +17,17 @@ template <typename It>
 void insertion_sort(It const i, It const j, auto cmp)
   noexcept(noexcept(cmp(*i, *i)))
 {
-  for (It m(i + 1); j != m; ++m)
-  {
+  for (auto m(i + 1); j != m; ++m)
     if (cmp(*m, *(m - 1)))
     {
       auto tmp(std::move(*m));
 
       auto n(m);
 
-      do
-        *n = std::move(*(n - 1));
-      while ((i != --n) && cmp(tmp, *(n - 1)));
+      for (; *n = std::move(*(n - 1)), (i != --n) && cmp(tmp, *(n - 1)););
 
       *n = std::move(tmp);
     }
-  }
 }
 
 template <auto E, typename It>
