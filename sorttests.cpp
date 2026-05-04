@@ -239,7 +239,7 @@ int main()
       return true;
     };
     a.clear();
-    for (int i = 0, count = 0; count < N; ++i) {
+    for (std::size_t i = 0, count = 0; count < N; ++i) {
       if (is_prime(i)) {
         a.push_back(i % N);
         ++count;
