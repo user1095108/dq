@@ -10,6 +10,7 @@
 #include <ranges>
 
 #include "arrayiterator.hpp"
+#include "nicesort.hpp"
 
 namespace dq
 {
@@ -729,6 +730,21 @@ public:
           std::inplace_merge(E, iterator{this, i.n_}, {this, a_},
             {this, j.n_}, cmp);
       }
+  }
+
+  template <class Cmp = std::less<value_type>>
+  void stable_sort(iterator i, iterator j, Cmp&& cmp = Cmp())
+  {
+    if (i.n_ <= j.n_)
+      nice::sort<E>(i.n_, j.n_, cmp);
+    else
+    {
+      nice::sort<E>(i.n_, std::addressof(a_[N]), cmp);
+      nice::sort<E>(a_, j.n_, cmp);
+      if ((j.n_ != a_) && cmp(*a_, a_[CAP]))
+        std::inplace_merge(E, iterator{this, i.n_}, {this, a_},
+          {this, j.n_}, cmp);
+    }
   }
 
   constexpr std::array<std::array<T*, 2>, 2> split() noexcept

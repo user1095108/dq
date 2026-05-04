@@ -3,63 +3,72 @@
 #include <iostream>
 #include <limits>
 #include <random>
+#include <ranges>
+#include <vector>
 
-#include "array.hpp"
-
-void randomize(auto& ...a) noexcept
-{
-  (
-    (
-      a.resize(std::rand() % a.capacity() + 1),
-      a.clear()
-    ),
-    ...
-  );
-}
+#include "nicesort.hpp"
 
 constexpr inline std::size_t N(1000000);
+
+bool is_stable_sort()
+{
+  auto const v(
+    std::views::iota(0, 1000) |
+    std::views::transform(
+      [](int const i) noexcept
+      {
+        return std::pair{i % 3, i};
+      }
+    )
+  );
+
+  std::vector<std::pair<int, int>> c(v.begin(), v.end());
+
+  auto const cmp([](auto const& a, auto const& b) noexcept
+    { return std::get<0>(a) < std::get<0>(b); });
+
+  nice::sort(c.begin(), c.end());
+
+  return std::ranges::is_sorted(c, cmp) &&
+    (c.cend() == std::ranges::adjacent_find(std::as_const(c),
+      [](auto const& l, auto const& r) noexcept
+      { // equal keys but wrong order - not stable
+        return l.first == r.first && l.second > r.second;
+      }));
+}
 
 void test_run(std::string_view const& title, auto& a)
 {
   std::cout << "=== " << title << " ===" << std::endl;
 
-  dq::array<int, N, dq::NEW> b, c, d;
-  randomize(b, c, d);
-  d = c = b = a;
+  std::vector<int> b, c;
+  c = b = a;
   assert(b == a);
   assert(c == a);
-  assert(d == a);
 
   //
   decltype(std::chrono::high_resolution_clock::now()) start, end;
 
   //
   start = std::chrono::high_resolution_clock::now();
-  std::sort(std::execution::unseq, a.begin(), a.end());
+  std::sort(a.begin(), a.end());
   end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> const d0(end - start);
 
   //
   start = std::chrono::high_resolution_clock::now();
-  b.sort(b.begin(), b.end());
+  std::stable_sort(b.begin(), b.end());
   end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> const d1(end - start);
 
   //
   start = std::chrono::high_resolution_clock::now();
-  std::stable_sort(std::execution::unseq, c.begin(), c.end());
+  nice::sort(c.begin(), c.end());
   end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> const d2(end - start);
-
-  //
-  start = std::chrono::high_resolution_clock::now();
-  d.stable_sort(d.begin(), d.end());
-  end = std::chrono::high_resolution_clock::now();
-
-  std::chrono::duration<double> const d3(end - start);
 
   //
   assert(std::is_sorted(a.cbegin(), a.cend()));
@@ -68,17 +77,16 @@ void test_run(std::string_view const& title, auto& a)
 
   //
   std::cout << "std::sort time: " << d0.count() << " seconds" << std::endl;
-  std::cout << "dq::sort time: " << d1.count() << " seconds" << std::endl;
-  std::cout << "std::stable_sort time: " << d2.count() << " seconds" << std::endl;
-  std::cout << "dq::stable_sort time: " << d3.count() << " seconds" << std::endl;
+  std::cout << "std::stable_sort time: " << d1.count() << " seconds" << std::endl;
+  std::cout << "nice::sort time: " << d2.count() << " seconds" << std::endl;
 }
 
 int main()
 {
-  dq::array<int, N, dq::NEW> a;
+  std::cout << "nice::sort is stable? " << is_stable_sort() << std::endl;
 
-  std::srand(std::random_device{}());
-  randomize(a);
+  std::vector<int> a;
+
   a.resize(N);
 
   //
