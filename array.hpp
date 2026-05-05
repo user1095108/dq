@@ -708,28 +708,16 @@ public:
   template <class Cmp = std::less<value_type>>
   void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
   {
-    if (std::is_constant_evaluated())
-      if (i.n_ <= j.n_)
-        std::sort(i.n_, j.n_, cmp);
-      else
-      {
-        std::sort(i.n_, std::addressof(a_[N]), cmp);
-        std::sort(a_, j.n_, cmp);
-        if ((j.n_ != a_) && cmp(*a_, a_[CAP]))
-          std::inplace_merge(iterator{this, i.n_}, {this, a_},
-            {this, j.n_}, cmp);
-      }
+    if (i.n_ <= j.n_)
+      std::sort(E, i.n_, j.n_, cmp);
     else
-      if (i.n_ <= j.n_)
-        std::sort(E, i.n_, j.n_, cmp);
-      else
-      {
-        std::sort(E, i.n_, std::addressof(a_[N]), cmp);
-        std::sort(E, a_, j.n_, cmp);
-        if ((j.n_ != a_) && cmp(*a_, a_[CAP]))
-          std::inplace_merge(E, iterator{this, i.n_}, {this, a_},
-            {this, j.n_}, cmp);
-      }
+    {
+      std::sort(E, i.n_, std::addressof(a_[N]), cmp);
+      std::sort(E, a_, j.n_, cmp);
+      if ((j.n_ != a_) && cmp(*a_, a_[CAP]))
+        std::inplace_merge(E, iterator{this, i.n_}, {this, a_},
+          {this, j.n_}, cmp);
+    }
   }
 
   template <class Cmp = std::less<value_type>>
