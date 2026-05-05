@@ -9,11 +9,6 @@ namespace nice
 
 enum { bsize0 = 16 };
 
-constexpr auto assign(auto& ...a) noexcept
-{
-  return [&](auto const ...b) noexcept { assign((a = b)...); };
-}
-
 template <typename It>
 void insertion_sort(It const i, It const j, auto cmp)
 {
@@ -37,7 +32,7 @@ void merge(It& a, It& b, It& c, It& d, auto& cmp)
   if (cmp(*b, *(b - 1)))
     std::inplace_merge(E, a, b, d, cmp);
 
-  assign(b, c)(d, a);
+  b = d; c = a;
 }
 
 template <auto E = std::execution::unseq,
@@ -49,14 +44,14 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 
   unsigned mask{}; // occupancy mask
 
+  auto j(i);
+
   for (auto sz(std::distance(i, e)); e != i;)
   {
     using U = decltype(sz);
 
-    auto j(i);
-
     // advance j
-    std::advance(j, sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz);
+    j += sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz;
 
     insertion_sort(i, j, cmp); // sort run [i, j)
 
@@ -70,7 +65,10 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
       merge<E>(c, d, i, j, cmp);
     }
 
-    assign(r->first, r->second, i)(i, j, j); // *r = {i, j}, i = j
+    *r = {i, j};
+
+    //
+    i = j;
   }
 
   auto& [m, n](runs[std::countr_zero(mask)]); // first valid stored run
