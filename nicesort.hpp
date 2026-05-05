@@ -31,7 +31,7 @@ void insertion_sort(It const i, It const j, auto cmp)
 }
 
 template <auto E, typename It>
-void merge(It& a, It& b, It& c, It& d, auto&& cmp)
+void merge(It& a, It& b, It& c, It& d, auto& cmp)
 { // merge runs [a, b) and [c, d)
   // assert(b == c);
   if (cmp(*b, *(b - 1)))
