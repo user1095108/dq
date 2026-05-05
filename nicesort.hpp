@@ -44,31 +44,33 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 
   unsigned mask{}; // occupancy mask
 
-  auto j(i);
-
-  for (auto sz(std::distance(i, e)); e != i;)
   {
-    using U = decltype(sz);
+    auto j(i);
 
-    // advance j
-    j += sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz;
+    for (auto sz(std::distance(i, e)); e != i;)
+    {
+      using U = decltype(sz);
 
-    insertion_sort(i, j, cmp); // sort run [i, j)
+      // advance j
+      j += sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz;
 
-    // merge run [i, j) with valid stored runs
-    auto r(runs);
-    ++mask;
+      insertion_sort(i, j, cmp); // sort run [i, j)
 
-    for (auto n(~mask & (mask - 1)); n; n >>= 1)
-    { // ~(x + 1) & x - isolate trailing ones
-      auto& [c, d](*r++);
-      merge<E>(c, d, i, j, cmp);
+      // merge run [i, j) with valid stored runs
+      auto r(runs);
+      ++mask;
+
+      for (auto n(~mask & (mask - 1)); n; n >>= 1)
+      { // ~(x + 1) & x - isolate trailing ones
+        auto& [c, d](*r++);
+        merge<E>(c, d, i, j, cmp);
+      }
+
+      *r = {i, j};
+
+      //
+      i = j;
     }
-
-    *r = {i, j};
-
-    //
-    i = j;
   }
 
   auto& [m, n](runs[std::countr_zero(mask)]); // first valid stored run
