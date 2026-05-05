@@ -25,7 +25,7 @@ void insertion_sort(It const i, It const j, auto cmp)
 
       auto n(m);
 
-      for (; *n = std::move(*(n - 1)), (i != --n) && cmp(tmp, *(n - 1)););
+      while (*n = std::move(*(n - 1)), (i != --n) && cmp(tmp, *(n - 1)));
 
       *n = std::move(tmp);
     }
