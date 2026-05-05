@@ -47,7 +47,7 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
   {
     auto j(i);
 
-    for (auto sz(std::distance(i, e)); e != i;)
+    for (auto sz(e - i); sz;)
     {
       using U = decltype(sz);
 
