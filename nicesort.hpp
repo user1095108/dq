@@ -47,12 +47,14 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
   {
     auto j(i);
 
-    for (auto sz(e - i); e != i;)
+    for (auto sz(e - i); sz;)
     {
       using U = decltype(sz);
 
-      // advance j
-      j += sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz;
+      { // advance j
+        auto const d(std::min(U(bsize0), sz));
+        j += d; sz -= d;
+      }
 
       insertion_sort(i, j, cmp); // sort run [i, j)
 
