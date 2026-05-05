@@ -44,41 +44,39 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 
   unsigned mask{}; // occupancy mask
 
+  auto j(i);
+
+  for (auto sz(e - i); sz;)
   {
-    auto j(i);
+    using U = decltype(sz);
 
-    for (auto sz(e - i); sz;)
-    {
-      using U = decltype(sz);
+    // advance j
+    j += sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz;
 
-      // advance j
-      j += sz >= U(bsize0) ? sz -= U(bsize0), U(bsize0) : sz;
+    insertion_sort(i, j, cmp); // sort run [i, j)
 
-      insertion_sort(i, j, cmp); // sort run [i, j)
+    // merge run [i, j) with valid stored runs
+    auto r(runs);
+    ++mask;
 
-      // merge run [i, j) with valid stored runs
-      auto r(runs);
-      ++mask;
-
-      for (auto n(~mask & (mask - 1)); n; n >>= 1)
-      { // ~(x + 1) & x - isolate trailing ones
-        auto& [c, d](*r++);
-        merge<E>(c, d, i, j, cmp);
-      }
-
-      *r = {i, j};
-
-      //
-      i = j;
+    for (auto n(~mask & (mask - 1)); n; n >>= 1)
+    { // ~(x + 1) & x - isolate trailing ones
+      auto& [c, d](*r++);
+      merge<E>(c, d, i, j, cmp);
     }
+
+    *r = {i, j};
+
+    //
+    i = j;
   }
 
-  auto& [m, n](runs[std::countr_zero(mask)]); // first valid stored run
+  std::tie(i, j) = runs[std::countr_zero(mask)]; // first valid stored run
 
   while (mask &= mask - 1) // x &= x - 1 - clear the least significant (rightmost) set bit
   { // merge remaining valid stored runs
     auto& [c, d](runs[std::countr_zero(mask)]);
-    merge<E>(c, d, m, n, cmp);
+    merge<E>(c, d, i, j, cmp);
   }
 }
 
