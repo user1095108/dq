@@ -16,7 +16,6 @@ constexpr auto assign(auto& ...a) noexcept
 
 template <typename It>
 void insertion_sort(It const i, It const j, auto cmp)
-  noexcept(noexcept(cmp(*i, *i)))
 {
   for (auto m(i + 1); j != m; ++m)
     if (cmp(*m, *(m - 1)))
