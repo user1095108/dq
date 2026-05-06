@@ -40,17 +40,14 @@ template <auto E = std::execution::unseq,
   class Cmp = std::less<typename std::iterator_traits<It>::value_type>>
 void sort(It i, It const e, Cmp&& cmp = Cmp())
 {
-  if (e == i) return;
-
   std::pair<It, It> runs[sizeof(unsigned) * CHAR_BIT];
 
   unsigned mask{}; // occupancy mask
 
   {
     auto j(i);
-    std::size_t sz(e - i);
 
-    do
+    for (std::size_t sz(e - i); sz;)
     {
       { // advance j
         auto const d(std::min(std::size_t(bsize0), sz));
@@ -74,8 +71,9 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
       //
       i = j;
     }
-    while (sz);
   }
+
+  if (!mask) return;
 
   auto& [c, d](runs[std::countr_zero(mask)]); // first valid stored run
 
