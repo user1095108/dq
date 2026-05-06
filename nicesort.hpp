@@ -48,14 +48,12 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 
   {
     auto j(i);
-    auto sz(e - i);
-
-    using U = decltype(sz);
+    std::size_t sz(e - i);
 
     do
     {
       { // advance j
-        auto const d(std::min(U(bsize0), sz));
+        auto const d(std::min(std::size_t(bsize0), sz));
         j += d; sz -= d;
       }
 
