@@ -537,7 +537,7 @@ public:
   {
     (++(i = insert(i, std::forward<decltype(a)>(a))), ...);
 
-    return {this, prev(i.n_, sizeof...(a))};
+    return {this, prev_(i.n_, sizeof...(a))};
   }
 
   constexpr auto insert(multi_t, const_iterator const i, value_type a)
@@ -554,7 +554,7 @@ public:
   {
     for (auto n(count); n; --n, ++(i = insert(i, a)));
 
-    return {this, prev(i.n_, count)};
+    return {this, prev_(i.n_, count)};
   }
 
   constexpr auto insert(const_iterator const i, size_type const count,
