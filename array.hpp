@@ -706,7 +706,7 @@ public:
   }
 
   template <class Cmp = std::less<value_type>>
-  void sort(iterator i, iterator j, Cmp&& cmp = Cmp())
+  void sort(iterator const i, iterator const j, Cmp&& cmp = Cmp())
   {
     if (i.n_ <= j.n_)
       std::sort(E, i.n_, j.n_, cmp);
@@ -721,7 +721,7 @@ public:
   }
 
   template <class Cmp = std::less<value_type>>
-  void stable_sort(iterator i, iterator j, Cmp&& cmp = Cmp())
+  void stable_sort(iterator const i, iterator const j, Cmp&& cmp = Cmp())
   {
     if (i.n_ <= j.n_)
       std::stable_sort(E, i.n_, j.n_, cmp);
