@@ -4,7 +4,7 @@
 #include <execution>
 #include <iterator>
 
-namespace nice
+namespace nicesort
 {
 
 enum { bsize0 = 16 };

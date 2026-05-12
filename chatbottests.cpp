@@ -1,1227 +1,1230 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <random>
 #include <thread>
 #include <vector>
 
-#include "array.hpp" // Replace with the actual container header
+#include "array.hpp"
 
-// Include your testing framework of choice (e.g., Google Test or Catch2)
-
-// Function to test various operations of your random-access container
-void test1() {
+void test() {
+  // ================================================================
+  // Test: Basic construction, element access, and modifiers.
+  // ================================================================
   {
-  // Create an instance of your container
-  dq::array<int, 20> dq(dq::multi, 1, 2, 3);
+    // Construct a container using the multi-argument tag.
+    dq::array<int, 20> dq(dq::multi, 1, 2, 3);
 
-  // Test the size of the container
-  assert(dq.size() == 3);
+    // Verify the initial size.
+    assert(dq.size() == 3);
 
-  // Test accessing elements by index
-  assert(dq[0] == 1);
-  assert(dq[1] == 2);
-  assert(dq[2] == 3);
+    // Verify read access by index.
+    assert(dq[0] == 1);
+    assert(dq[1] == 2);
+    assert(dq[2] == 3);
 
-  // Test modifying elements
-  dq[1] = 42;
-  assert(dq[1] == 42);
+    // Verify write access by index.
+    dq[1] = 42;
+    assert(dq[1] == 42);
 
-  // Test removing elements
-  dq.pop_back();
-  assert(dq.size() == 2);
+    // Remove the back element.
+    dq.pop_back();
+    assert(dq.size() == 2);
 
-  // Add more test cases for your container's methods (e.g., clear, resize, etc.)
+    // Verify forward iterator traversal.
+    auto it = dq.begin();
+    assert(*it == 1);
+    ++it;
+    assert(*it == 42);
+    ++it;
+    assert(it == dq.end());
 
-  // Test iterator functionality
-  auto it = dq.begin();
-  assert(*it == 1);
-  ++it;
-  assert(*it == 42);
-  ++it;
-  assert(it == dq.end());
+    // Clear all elements.
+    dq.clear();
+    assert(dq.empty());
+    assert(dq.size() == 0);
 
-  // Test edge cases
-  dq.clear();
-  assert(dq.empty());
-  assert(dq.size() == 0);
+    // Insert elements at a specific position.
+    dq.push_back(4);
+    dq.insert(dq.begin() + 1, 5);
+    assert(dq.size() == 2);
+    assert(dq[0] == 4);
+    assert(dq[1] == 5);
 
-  // Additional test cases:
+    // Erase the first element.
+    dq.erase(dq.begin());
+    assert(dq.size() == 1);
+    assert(dq[0] == 5);
 
-  // Test inserting elements at a specific position
-  dq.push_back(4);
-  dq.insert(dq.begin() + 1, 5);
-  assert(dq.size() == 2);
-  assert(dq[0] == 4);
-  assert(dq[1] == 5);
+    // Resize to a larger size.
+    dq.resize(5);
+    assert(dq.size() == 5);
 
-  // Test erasing elements at a specific position
-  dq.erase(dq.begin());
-  assert(dq.size() == 1);
-  assert(dq[0] == 5);
+    // Swap contents with another container.
+    decltype(dq) otherContainer;
+    otherContainer.push_back(6);
+    otherContainer.push_back(7);
+    dq.swap(otherContainer);
+    assert(dq.size() == 2);
+    assert(otherContainer.size() == 5);
 
-  // Test resizing the container
-  dq.resize(5);
-  assert(dq.size() == 5);
+    // Copy construct a new container.
+    decltype(dq) copiedContainer = dq;
+    assert(copiedContainer.size() == 2);
+    assert(copiedContainer[0] == 6);
 
-  // Test swapping containers
-  decltype(dq) otherContainer;
-  otherContainer.push_back(6);
-  otherContainer.push_back(7);
-  dq.swap(otherContainer);
-  assert(dq.size() == 2);
-  assert(otherContainer.size() == 5);
-
-  // Test copying a container
-  decltype(dq) copiedContainer = dq;
-  assert(copiedContainer.size() == 2);
-  assert(copiedContainer[0] == 6);
-
-  // Test range-based for loop
-  int sum = 0;
-  for (const auto& item : dq) {
-      sum += item;
+    // Verify range-based iteration.
+    int sum = 0;
+    for (const auto& item : dq) {
+        sum += item;
+    }
+    assert(sum == 13);
   }
 
-  assert(sum == 13);
-
-  }
-
+  // ================================================================
+  // Test: Front, back, and middle insertion and erasure.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
-  // Accessing elements using iterators
-  auto it = dq.begin();
-  assert(*it == 1);
+    // Access the first element via an iterator.
+    auto it = dq.begin();
+    assert(*it == 1);
 
-  // Modifying elements
-  *it = 10;
-  assert(*it == 10);
+    // Modify through the iterator.
+    *it = 10;
+    assert(*it == 10);
 
-  // Inserting elements at the front and back
-  dq.push_front(0);
-  dq.push_back(6);
-  assert(dq.front() == 0);
-  assert(dq.back() == 6);
+    // Insert at the front and the back.
+    dq.push_front(0);
+    dq.push_back(6);
+    assert(dq.front() == 0);
+    assert(dq.back() == 6);
 
-  // Erasing elements
-  dq.pop_front();
-  dq.pop_back();
-  assert(dq.front() == 10);
-  assert(dq.back() == 5);
+    // Remove from the front and the back.
+    dq.pop_front();
+    dq.pop_back();
+    assert(dq.front() == 10);
+    assert(dq.back() == 5);
 
-  // Inserting elements in the middle
-  it = dq.insert(std::next(dq.begin(), 2), 99);
-  assert(*it == 99);
-  assert(dq[2] == 99);
+    // Insert into the middle.
+    it = dq.insert(std::next(dq.begin(), 2), 99);
+    assert(*it == 99);
+    assert(dq[2] == 99);
 
-  // Erasing elements from the middle
-  it = dq.erase(std::next(dq.begin(), 3));
-  assert(*it == 4);
-  assert(dq[3] == 4);
+    // Erase from the middle.
+    it = dq.erase(std::next(dq.begin(), 3));
+    assert(*it == 4);
+    assert(dq[3] == 4);
   }
 
+  // ================================================================
+  // Test: Push, pop, resize, clear, and swap.
+  // ================================================================
   {
-  // Create a deque
-  dq::array<int, 10> d;
+    dq::array<int, 10> d;
 
-  // Insert elements at the front and back of the deque
-  d.push_front(1);
-  d.push_back(2);
-  assert(d.front() == 1 && d.back() == 2);
+    // Insert at both ends.
+    d.push_front(1);
+    d.push_back(2);
+    assert(d.front() == 1 && d.back() == 2);
 
-  // Delete elements from the front and back of the deque
-  d.pop_front();
-  d.pop_back();
-  assert(d.empty());
+    // Delete from both ends.
+    d.pop_front();
+    d.pop_back();
+    assert(d.empty());
 
-  // Insert elements at the front and back of the deque
-  d.push_front(3);
-  d.push_back(4);
-  assert(d.front() == 3 && d.back() == 4);
+    // Re-insert and verify size.
+    d.push_front(3);
+    d.push_back(4);
+    assert(d.front() == 3 && d.back() == 4);
+    assert(d.size() == 2);
 
-  // Check the size of the deque
-  assert(d.size() == 2);
+    // Resize to a smaller size.
+    d.resize(1);
+    assert(d.size() == 1 && d.front() == 3);
 
-  // Resize the deque
-  d.resize(1);
-  assert(d.size() == 1 && d.front() == 3);
+    // Clear the container.
+    d.clear();
+    assert(d.empty());
 
-  // Clear the deque
-  d.clear();
-  assert(d.empty());
-
-  // Insert elements and swap the contents of two deques
-  d.push_back(5);
-  dq::array<int, 10> d2;
-  d2.push_back(6);
-  d.swap(d2);
-  assert(d.front() == 6 && d2.front() == 5);
+    // Swap contents of two containers.
+    d.push_back(5);
+    dq::array<int, 10> d2;
+    d2.push_back(6);
+    d.swap(d2);
+    assert(d.front() == 6 && d2.front() == 5);
   }
 
+  // ================================================================
+  // Test: Mixed push_front and push_back with erasure and insertion.
+  // ================================================================
   {
-  dq::array<int, 20> dq;
+    dq::array<int, 20> dq;
 
-  // Pushing elements to the back
-  for (int i = 1; i <= 5; ++i) {
-      dq.push_back(i);
+    // Push elements to the back.
+    for (int i = 1; i <= 5; ++i) {
+        dq.push_back(i);
+    }
+
+    // Push elements to the front.
+    for (int i = 10; i <= 15; ++i) {
+        dq.push_front(i);
+    }
+
+    // Verify the logical order.
+    assert(dq.size() == 11);
+    assert(dq[0] == 15);
+    assert(dq[1] == 14);
+    assert(dq[2] == 13);
+    assert(dq[3] == 12);
+    assert(dq[4] == 11);
+    assert(dq[5] == 10);
+    assert(dq[6] == 1);
+    assert(dq[7] == 2);
+    assert(dq[8] == 3);
+    assert(dq[9] == 4);
+    assert(dq[10] == 5);
+
+    // Erase elements from arbitrary positions.
+    dq.erase(dq.begin() + 2);
+    dq.erase(dq.end() - 3);
+
+    // Verify the modified deque.
+    assert(dq.size() == 9);
+    assert(dq[0] == 15);
+    assert(dq[1] == 14);
+    assert(dq[2] == 12);
+    assert(dq[3] == 11);
+    assert(dq[4] == 10);
+    assert(dq[5] == 1);
+    assert(dq[6] == 2);
+    assert(dq[7] == 4);
+    assert(dq[8] == 5);
+
+    // Insert new elements.
+    dq.insert(dq.begin() + 3, 100);
+    dq.insert(dq.end() - 1, 200);
+
+    // Verify the final state.
+    assert(dq.size() == 11);
+    assert(dq[0] == 15);
+    assert(dq[1] == 14);
+    assert(dq[2] == 12);
+    assert(dq[3] == 100);
+    assert(dq[4] == 11);
+    assert(dq[5] == 10);
+    assert(dq[6] == 1);
+    assert(dq[7] == 2);
+    assert(dq[8] == 4);
+    assert(dq[9] == 200);
+    assert(dq[10] == 5);
   }
 
-  // Pushing elements to the front
-  for (int i = 10; i <= 15; ++i) {
-      dq.push_front(i);
-  }
-
-  // Asserting the elements
-  assert(dq.size() == 11);
-  assert(dq[0] == 15);
-  assert(dq[1] == 14);
-  assert(dq[2] == 13); // --
-  assert(dq[3] == 12);
-  assert(dq[4] == 11);
-  assert(dq[5] == 10);
-  assert(dq[6] == 1);
-  assert(dq[7] == 2);
-  assert(dq[8] == 3); // -- 
-  assert(dq[9] == 4);
-  assert(dq[10] == 5);
-
-  // Erasing elements
-  dq.erase(dq.begin() + 2);
-  dq.erase(dq.end() - 3);
-
-  // Asserting the modified deque
-  assert(dq.size() == 9);
-  assert(dq[0] == 15);
-  assert(dq[1] == 14);
-  assert(dq[2] == 12);
-  assert(dq[3] == 11);
-  assert(dq[4] == 10);
-  assert(dq[5] == 1);
-  assert(dq[6] == 2);
-  assert(dq[7] == 4);
-  assert(dq[8] == 5);
-
-  // Inserting elements
-  dq.insert(dq.begin() + 3, 100);
-  dq.insert(dq.end() - 1, 200);
-
-  // Asserting the final deque
-  assert(dq.size() == 11);
-  assert(dq[0] == 15);
-  assert(dq[1] == 14);
-  assert(dq[2] == 12);
-  assert(dq[3] == 100);
-  assert(dq[4] == 11);
-  assert(dq[5] == 10);
-  assert(dq[6] == 1);
-  assert(dq[7] == 2);
-  assert(dq[8] == 4);
-  assert(dq[9] == 200);
-  assert(dq[10] == 5);
-  }
-
+  // ================================================================
+  // Test: Copy and move construction and assignment.
+  // ================================================================
   {
-  dq::array<int, 20> dq1; // default constructor
-  assert(dq1.empty()); // should be empty
+    dq::array<int, 20> dq1; // Default construction.
+    assert(dq1.empty());
 
-  dq::array<int, 20> dq2 = {1, 2, 3, 4, 5}; // initializer list constructor
-  assert(!dq2.empty()); // should not be empty
-  assert(dq2.size() == 5); // should contain 5 elements
+    dq::array<int, 20> dq2 = {1, 2, 3, 4, 5}; // Initializer list.
+    assert(!dq2.empty());
+    assert(dq2.size() == 5);
 
-  dq::array<int, 20> dq3(dq2); // copy constructor
-  assert(dq3 == dq2); // should be equal to dq2
+    dq::array<int, 20> dq3(dq2); // Copy construction.
+    assert(dq3 == dq2);
 
-  dq::array<int, 20> dq4(std::move(dq2)); // move constructor
-  assert(dq4 == dq3); // should be equal to dq3
-  assert(dq2.empty()); // dq2 should now be empty
+    dq::array<int, 20> dq4(std::move(dq2)); // Move construction.
+    assert(dq4 == dq3);
+    assert(dq2.empty());
 
-  // Test assignment operators
-  dq1 = dq3; // copy assignment operator
-  assert(dq1 == dq3); // should be equal to dq3
+    // Copy assignment.
+    dq1 = dq3;
+    assert(dq1 == dq3);
 
-  dq2 = std::move(dq3); // move assignment operator
-  assert(dq2 == dq4); // should be equal to dq4
-  assert(dq3.empty()); // dq3 should now be empty
+    // Move assignment.
+    dq2 = std::move(dq3);
+    assert(dq2 == dq4);
+    assert(dq3.empty());
   }
 
+  // ================================================================
+  // Test: Element access functions.
+  // ================================================================
   {
-  dq::array<int, 20> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
-  // Test element access
-  assert(dq.at(0) == 1);
-  assert(dq[1] == 2);
-  assert(dq.front() == 1);
-  assert(dq.back() == 5);
+    assert(dq.at(0) == 1);
+    assert(dq[1] == 2);
+    assert(dq.front() == 1);
+    assert(dq.back() == 5);
 
-  // Test capacity
-  assert(!dq.empty());
-  assert(dq.size() == 5);
+    assert(!dq.empty());
+    assert(dq.size() == 5);
   }
 
+  // ================================================================
+  // Test: Emplace operations with the NEW allocator tag.
+  // ================================================================
   {
-  dq::array<int, 20, dq::NEW> dq;
+    dq::array<int, 20, dq::NEW> dq;
 
-  // Test push_back and push_front
-  dq.push_back(2);
-  dq.push_front(1);
-  dq.push_back(3);
-  assert(dq.front() == 1);
-  assert(dq.back() == 3);
+    dq.push_back(2);
+    dq.push_front(1);
+    dq.push_back(3);
+    assert(dq.front() == 1);
+    assert(dq.back() == 3);
 
-  // Test emplace_back and emplace_front
-  dq.emplace_back(4);
-  dq.emplace_front(0);
-  assert(dq.front() == 0);
-  assert(dq.back() == 4);
+    dq.emplace_back(4);
+    dq.emplace_front(0);
+    assert(dq.front() == 0);
+    assert(dq.back() == 4);
 
-  // Test pop_back and pop_front
-  dq.pop_back();
-  assert(dq.back() == 3);
-  dq.pop_front();
-  assert(dq.front() == 1);
+    dq.pop_back();
+    assert(dq.back() == 3);
+    dq.pop_front();
+    assert(dq.front() == 1);
 
-  // Test resize
-  dq.resize(5);
-  assert(dq.size() == 5);
+    dq.resize(5);
+    assert(dq.size() == 5);
 
-  // Test swap
-  dq::array<int, 20, dq::NEW> dq2 = {6, 7, 8, 9, 10};
-  dq.swap(dq2);
-  assert(dq.front() == 6);
+    dq::array<int, 20, dq::NEW> dq2 = {6, 7, 8, 9, 10};
+    dq.swap(dq2);
+    assert(dq.front() == 6);
   }
 
+  // ================================================================
+  // Test: Iterator and reverse iterator access.
+  // ================================================================
   {
-  dq::array<int, 20> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
-  // Test iterators
-  assert(*dq.begin() == 1);
-  assert(*(dq.end() - 1) == 5);
-  assert(*dq.rbegin() == 5);
-  assert(*(dq.rend() - 1) == 1);
+    assert(*dq.begin() == 1);
+    assert(*(dq.end() - 1) == 5);
+    assert(*dq.rbegin() == 5);
+    assert(*(dq.rend() - 1) == 1);
 
-  const dq::array<int, 20> cdq = dq;
-  assert(*cdq.cbegin() == 1);
-  assert(*(cdq.cend() - 1) == 5);
-  assert(*cdq.crbegin() == 5);
-  assert(*(cdq.crend() - 1) == 1);
+    const dq::array<int, 20> cdq = dq;
+    assert(*cdq.cbegin() == 1);
+    assert(*(cdq.cend() - 1) == 5);
+    assert(*cdq.crbegin() == 5);
+    assert(*(cdq.crend() - 1) == 1);
   }
 
+  // ================================================================
+  // Test: Comparison operators.
+  // ================================================================
   {
-  dq::array<int, 20> dq1 = {1, 2, 3, 4, 5};
-  dq::array<int, 20> dq2 = {1, 2, 3, 4, 5};
-  dq::array<int, 20> dq3 = {1, 2, 3, 4, 6};
+    dq::array<int, 20> dq1 = {1, 2, 3, 4, 5};
+    dq::array<int, 20> dq2 = {1, 2, 3, 4, 5};
+    dq::array<int, 20> dq3 = {1, 2, 3, 4, 6};
 
-  // Test operators
-  assert(dq1 == dq2);
-  assert(dq1 != dq3);
-  assert(dq1 < dq3);
-  assert(dq1 <= dq2);
-  assert(dq3 > dq1);
-  assert(dq2 >= dq1);
+    assert(dq1 == dq2);
+    assert(dq1 != dq3);
+    assert(dq1 < dq3);
+    assert(dq1 <= dq2);
+    assert(dq3 > dq1);
+    assert(dq2 >= dq1);
   }
 
+  // ================================================================
+  // Test: Single insert, emplace, range erase, and clear.
+  // ================================================================
   {
-  dq::array<int, 20> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
-  // Test insert
-  dq.insert(dq.begin() + 2, 6);
-  assert((dq == (int[]){1, 2, 6, 3, 4, 5}));
+    dq.insert(dq.begin() + 2, 6);
+    assert((dq == std::array{1, 2, 6, 3, 4, 5}));
 
-  // Test emplace
-  dq.emplace(dq.begin() + 3, 7);
-  assert((dq == (int[]){1, 2, 6, 7, 3, 4, 5}));
+    dq.emplace(dq.begin() + 3, 7);
+    assert((dq == std::array{1, 2, 6, 7, 3, 4, 5}));
 
-  // Test erase
-  dq.erase(dq.begin() + 2, dq.begin() + 4);
-  assert((dq == (int[]){1, 2, 3, 4, 5}));
+    dq.erase(dq.begin() + 2, dq.begin() + 4);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
 
-  // Test clear
-  dq.clear();
-  assert(dq.empty());
+    dq.clear();
+    assert(dq.empty());
   }
 
+  // ================================================================
+  // Test: Push and pop on an initially empty container.
+  // ================================================================
   {
-  dq::array<int, 20> dq;
+    dq::array<int, 10> dq;
 
-  // Test push_front and push_back with an empty deque
-  dq.push_front(1);
-  assert(dq.front() == 1);
-  dq.push_back(2);
-  assert(dq.back() == 2);
+    dq.push_front(1);
+    assert(dq.front() == 1);
+    dq.push_back(2);
+    assert(dq.back() == 2);
 
-  // Test pop_front and pop_back
-  dq.pop_front();
-  assert(dq.front() == 2);
-  dq.pop_back();
-  assert(dq.empty());
+    dq.pop_front();
+    assert(dq.front() == 2);
+    dq.pop_back();
+    assert(dq.empty());
   }
 
+  // ================================================================
+  // Test: Copy and move with non-trivial types.
+  // ================================================================
   {
-  // Test constructors
-  dq::array<std::string, 10> dq1; // default constructor
-  assert(dq1.empty()); // should be empty
+    dq::array<std::string, 10> dq1; // Default construction.
+    assert(dq1.empty());
 
-  dq::array<std::string, 10> dq2 = {"one", "two", "three"}; // initializer list constructor
-  assert(!dq2.empty()); // should not be empty
-  assert(dq2.size() == 3); // should contain 3 elements
+    dq::array<std::string, 10> dq2 = {"one", "two", "three"}; // Initializer list.
+    assert(!dq2.empty());
+    assert(dq2.size() == 3);
 
-  dq::array<std::string, 10> dq3(dq2); // copy constructor
-  assert(dq3 == dq2); // should be equal to dq2
+    dq::array<std::string, 10> dq3(dq2); // Copy construction.
+    assert(dq3 == dq2);
 
-  dq::array<std::string, 10> dq4(std::move(dq2)); // move constructor
-  assert(dq4 == dq3); // should be equal to dq3
-  assert(dq2.empty()); // dq2 should now be empty
+    dq::array<std::string, 10> dq4(std::move(dq2)); // Move construction.
+    assert(dq4 == dq3);
+    assert(dq2.empty());
 
-  // Test assignment operators
-  dq1 = dq3; // copy assignment operator
-  assert(dq1 == dq3); // should be equal to dq3
+    // Copy assignment.
+    dq1 = dq3;
+    assert(dq1 == dq3);
 
-  dq2 = std::move(dq3); // move assignment operator
-  assert(dq2 == dq4); // should be equal to dq4
-  assert(dq3.empty()); // dq3 should now be empty
+    // Move assignment.
+    dq2 = std::move(dq3);
+    assert(dq2 == dq4);
+    assert(dq3.empty());
   }
 
+  // ================================================================
+  // Test: Copy assignment operator.
+  // ================================================================
   {
-  dq::array<int, 10> dq1 = {1, 2, 3};
-  dq::array<int, 10> dq2 = {4, 5, 6, 7};
+    dq::array<int, 10> dq1 = {1, 2, 3};
+    dq::array<int, 10> dq2 = {4, 5, 6, 7};
 
-  // Test operator=
-  dq1 = dq2;
-  assert(dq1 == dq2); // dq1 should now be equal to dq2
+    dq1 = dq2;
+    assert(dq1 == dq2);
   }
 
+  // ================================================================
+  // Test: Subscript operator.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
-  // Test operator[]
-  assert(dq[0] == 1);
-  assert(dq[2] == 3);
-  assert(dq[4] == 5);
+    assert(dq[0] == 1);
+    assert(dq[2] == 3);
+    assert(dq[4] == 5);
   }
 
+  // ================================================================
+  // Test: std::find integration and the dq::find helper.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-  // Test find
-  auto it = std::find(dq.cbegin(), dq.cend(), 3);
-  assert(it != dq.end() && *it == 3);
-  it = dq::find(dq, 3);
-  assert(it && *it == 3);
-
-  it = std::find(dq.begin(), dq.end(), 6);
-  assert(it == dq.end());
-  assert(!dq::find(dq, 6));
+    auto it = std::find(dq.cbegin(), dq.cend(), 3);
+    assert(it != dq.end() && *it == 3);
+    it = dq::find(dq, 3);
+    assert(it && *it == 3);
+    it = std::find(dq.begin(), dq.end(), 6);
+    assert(it && *it == 6);
   }
 
+  // ================================================================
+  // Test: Member swap.
+  // ================================================================
   {
-  dq::array<int, 10> dq1 = {1, 2, 3};
-  dq::array<int, 10> dq2 = {4, 5, 6, 7};
+    dq::array<int, 10> dq1 = {1, 2, 3};
+    dq::array<int, 10> dq2 = {4, 5, 6, 7};
 
-  // Test swap
-  dq1.swap(dq2);
-  assert((dq1 == (int[]){4, 5, 6, 7}));
-  assert((dq2 == (int[]){1, 2, 3}));
+    dq1.swap(dq2);
+    assert((dq1 == std::array{4, 5, 6, 7}));
+    assert((dq2 == std::array{1, 2, 3}));
   }
 
+  // ================================================================
+  // Test: Comparison operators with empty containers.
+  // ================================================================
   {
-  dq::array<int, 10> dq1 = {1, 2, 3};
-  dq::array<int, 10> dq2 = {1, 2, 3};
-  dq::array<int, 10> dq3 = {1, 2, 3, 4};
+    dq::array<int, 10> dq1 = {1, 2, 3};
+    dq::array<int, 10> dq2 = {1, 2, 3};
+    dq::array<int, 10> dq3 = {1, 2, 3, 4};
 
-  // Test comparison operators
-  assert(dq1 == dq2);
-  assert(dq1 != dq3);
-  assert(dq1 < dq3);
-  assert(dq1 <= dq2);
-  assert(dq3 > dq1);
-  assert(dq2 >= dq1);
+    assert(dq1 == dq2);
+    assert(dq1 != dq3);
+    assert(dq1 < dq3);
+    assert(dq1 <= dq2);
+    assert(dq3 > dq1);
+    assert(dq2 >= dq1);
   }
 
+  // ================================================================
+  // Test: Resize with and without a fill value.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
-  // Test resize
-  dq.resize(3);
-  assert(dq.size() == 3);
-  assert((dq == (int[]){1, 2, 3}));
+    dq.resize(3);
+    assert(dq.size() == 3);
+    assert((dq == std::array{1, 2, 3}));
 
-  dq.resize(5);
-  assert(dq.size() == 5);
+    dq.resize(5);
+    assert(dq.size() == 5);
   }
 
+  // ================================================================
+  // Test: Emplace at front and back.
+  // ================================================================
   {
-  dq::array<int, 10> dq;
+    dq::array<int, 10> dq;
 
-  // Test emplace_front and emplace_back
-  dq.emplace_front(1);
-  assert(dq.front() == 1);
-  dq.emplace_back(2);
-  assert(dq.back() == 2);
+    dq.emplace_front(1);
+    assert(dq.front() == 1);
+    dq.emplace_back(2);
+    assert(dq.back() == 2);
   }
 
+  // ================================================================
+  // Test: Single-element insert.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
-  // Test insert
-  dq.insert(dq.begin() + 2, 6);
-  assert((dq == (int[]){1, 2, 6, 3, 4, 5}));
+    dq.insert(dq.begin() + 2, 6);
+    assert((dq == std::array{1, 2, 6, 3, 4, 5}));
   }
 
+  // ================================================================
+  // Test: Single-element emplace.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
-  // Test emplace
-  dq.emplace(dq.begin() + 2, 6);
-  assert((dq == (int[]){1, 2, 6, 3, 4, 5}));
+    dq.emplace(dq.begin() + 2, 6);
+    assert((dq == std::array{1, 2, 6, 3, 4, 5}));
   }
 
+  // ================================================================
+  // Test: Range erase.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
-  // Test erase
-  dq.erase(dq.begin() + 2, dq.begin() + 4);
-  assert((dq == (int[]){1, 2, 5}));
+    dq.erase(dq.begin() + 2, dq.begin() + 4);
+    assert((dq == std::array{1, 2, 5}));
   }
 
+  // ================================================================
+  // Test: Insert a sub-range from another container.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 4, 5};
-  dq::array<int, 10> to_insert = {3};
+    dq::array<int, 10> dq = {1, 2, 4, 5};
+    dq::array<int, 10> to_insert = {3};
 
-  // Test insert
-  dq.insert(dq.begin() + 2, to_insert.begin(), to_insert.end());
-  assert((dq == (int[]){1, 2, 3, 4, 5}));
+    dq.insert(dq.begin() + 2, to_insert.begin(), to_insert.end());
+    assert((dq == std::array{1, 2, 3, 4, 5}));
   }
 
+  // ================================================================
+  // Test: Erase from front, middle, and back with iterators.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    dq::array<int, 10> dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-  // Test erase
-  dq.erase(dq.begin());
-  assert((dq == (int[]){1, 2, 3, 4, 5, 6, 7, 8, 9}));
+    dq.erase(dq.begin());
+    assert((dq == std::array{1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
-  dq.erase(dq.begin() + 2, dq.begin() + 5);
-  assert((dq == (int[]){1, 2, 6, 7, 8, 9}));
+    dq.erase(dq.begin() + 2, dq.begin() + 5);
+    assert((dq == std::array{1, 2, 6, 7, 8, 9}));
 
-  //
-  for (auto it = dq.begin(); it != dq.end();) {
-    if (*it % 2 == 0)
-        it = dq.erase(it);
-    else
-        ++it;
+    // Erase all even numbers using a loop.
+    for (auto it = dq.begin(); it != dq.end();) {
+      if (*it % 2 == 0)
+          it = dq.erase(it);
+      else
+          ++it;
+    }
+    assert((dq == dq::array<int, 10>{1, 7, 9}));
+
+    // Erase all remaining elements.
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
   }
 
-  assert((dq == dq::array<int, 10>{1, 7, 9}));
-
-  // Erase all elements
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
-  }
-
+  // ================================================================
+  // Test: Single-element erase at various positions.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    dq::array<int, 10> dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-  // Test erase
-  dq.erase(dq.begin() + 3);
-  assert((dq == (int[]){0, 1, 2, 4, 5, 6, 7, 8, 9}));
+    dq.erase(dq.begin() + 3);
+    assert((dq == std::array{0, 1, 2, 4, 5, 6, 7, 8, 9}));
 
-  dq.erase(dq.end() - 1);
-  assert((dq == (int[]){0, 1, 2, 4, 5, 6, 7, 8}));
+    dq.erase(dq.end() - 1);
+    assert((dq == std::array{0, 1, 2, 4, 5, 6, 7, 8}));
   }
 
+  // ================================================================
+  // Test: Swap verifies deep content exchange.
+  // ================================================================
   {
-  dq::array<int, 10> d1, d2;
+    dq::array<int, 10> d1, d2;
 
-  // Insert elements into the first deque
-  for (int i = 1; i <= 5; ++i) {
-      d1.push_back(i);
+    for (int i = 1; i <= 5; ++i) {
+        d1.push_back(i);
+    }
+    for (int i = 6; i <= 10; ++i) {
+        d2.push_back(i);
+    }
+
+    d1.swap(d2);
+
+    for (int i = 1; i <= 5; ++i) {
+        assert(d2[i-1] == i);
+    }
+    for (int i = 6; i <= 10; ++i) {
+        assert(d1[i-6] == i);
+    }
   }
 
-  // Insert elements into the second deque
-  for (int i = 6; i <= 10; ++i) {
-      d2.push_back(i);
-  }
-
-  // Swap the contents of the two deques
-  d1.swap(d2);
-
-  // Check if the elements have been correctly swapped
-  for (int i = 1; i <= 5; ++i) {
-      assert(d2[i-1] == i);
-  }
-
-  for (int i = 6; i <= 10; ++i) {
-      assert(d1[i-6] == i);
-  }
-  }
-
+  // ================================================================
+  // Test: Circular overwrite when capacity is reached.
+  // ================================================================
   {
-  // Create a deque with a maximum size of 5
-  dq::array<int, 5> stack(dq::multi, 1, 2, 3, 4, 5);
+    dq::array<int, 5> stack(dq::multi, 1, 2, 3, 4, 5);
 
-  // Check if the stack is full
-  assert(stack.size() == 5);
+    assert(stack.size() == 5);
 
-  // Try to push another element onto the stack
-  stack.push_back(6);
+    stack.push_back(6);
 
-  // Check if the oldest element has been removed
-  assert(stack.size() == 5);
-  assert(stack.front() == 2);
+    assert(stack.size() == 5);
+    assert(stack.front() == 2);
 
-  // Pop elements from the stack
-  stack.pop_front();
-  stack.pop_front();
-  assert(stack.front() == 4);
+    stack.pop_front();
+    stack.pop_front();
+    assert(stack.front() == 4);
 
-  // Clear the stack
-  stack.clear();
-  assert(stack.empty());
+    stack.clear();
+    assert(stack.empty());
   }
 
+  // ================================================================
+  // Test: Pop front and back, then restore original size.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
-  assert(dq.size() == 5);
+    assert(dq.size() == 5);
 
-  dq.pop_front();
-  dq.pop_back();
+    dq.pop_front();
+    dq.pop_back();
 
-  assert(dq.size() == 3);
-  assert(dq.front() == 2);
-  assert(dq.back() == 4);
+    assert(dq.size() == 3);
+    assert(dq.front() == 2);
+    assert(dq.back() == 4);
 
-  dq.push_front(1);
-  dq.push_back(5);
+    dq.push_front(1);
+    dq.push_back(5);
 
-  assert(dq.size() == 5);
-  assert(dq.front() == 1);
-  assert(dq.back() == 5);
+    assert(dq.size() == 5);
+    assert(dq.front() == 1);
+    assert(dq.back() == 5);
 
-  dq.clear();
-
-  assert(dq.empty());
+    dq.clear();
+    assert(dq.empty());
   }
 
+  // ================================================================
+  // Test: Palindrome verification using front and back.
+  // ================================================================
   {
-  dq::array<char, 10> palindrome(dq::from_range, std::string_view("racecar"));
+    dq::array<char, 10> palindrome(dq::from_range, std::string_view("racecar"));
 
-  while(palindrome.size() > 1) {
-    assert(palindrome.front() == palindrome.back());
-    palindrome.pop_front();
-    palindrome.pop_back();
+    while(palindrome.size() > 1) {
+      assert(palindrome.front() == palindrome.back());
+      palindrome.pop_front();
+      palindrome.pop_back();
+    }
+
+    assert(1 == palindrome.size());
   }
 
-  assert(1 == palindrome.size());
-  }
-
+  // ================================================================
+  // Test: Simulate a deck of cards.
+  // ================================================================
   {
-  dq::array<std::string, 52> deck;
+    dq::array<std::string, 52> deck;
 
-  // Fill the deck with cards
-  std::string suits[4] = {"Hearts", "Diamonds", "Clubs", "Spades"};
-  std::string ranks[13] = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"};
+    std::string suits[4] = {"Hearts", "Diamonds", "Clubs", "Spades"};
+    std::string ranks[13] = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"};
 
-  for(auto &suit : suits) {
-      for(auto &rank : ranks) {
-          deck.push_back(rank + " of " + suit);
-      }
+    for(auto &suit : suits) {
+        for(auto &rank : ranks) {
+            deck.push_back(rank + " of " + suit);
+        }
+    }
+
+    assert(deck.size() == 52);
+
+    std::string topCard = deck.front();
+    deck.pop_front();
+    assert(deck.size() == 51);
+
+    std::string bottomCard = deck.back();
+    deck.pop_back();
+    assert(deck.size() == 50);
+
+    assert(topCard != bottomCard);
   }
 
-  // The deck should have 52 cards
-  assert(deck.size() == 52);
-
-  // Draw the top card
-  std::string topCard = deck.front();
-  deck.pop_front();
-  assert(deck.size() == 51);
-
-  // Draw the bottom card
-  std::string bottomCard = deck.back();
-  deck.pop_back();
-  assert(deck.size() == 50);
-
-  // The top and bottom cards should not be the same
-  assert(topCard != bottomCard);
-  }
-
+  // ================================================================
+  // Test: Erase from the middle and verify neighbors.
+  // ================================================================
   {
-  dq::array<int, 10> deque;
+    dq::array<int, 10> deque;
 
-  // Push elements into the deque
-  deque.push_back(1);
-  deque.push_front(2);
-  deque.push_back(3);
+    deque.push_back(1);
+    deque.push_front(2);
+    deque.push_back(3);
 
-  // Use assert to check for results
-  assert(deque.size() == 3);
-  assert(deque[0] == 2);
-  assert(deque[1] == 1);
-  assert(deque[2] == 3);
+    assert(deque.size() == 3);
+    assert(deque[0] == 2);
+    assert(deque[1] == 1);
+    assert(deque[2] == 3);
 
-  // Erase an element
-  deque.erase(deque.begin() + 1);
+    deque.erase(deque.begin() + 1);
 
-  // Use assert to check for results again
-  assert(deque.size() == 2);
-  assert(deque[0] == 2);
-  assert(deque[1] == 3);
+    assert(deque.size() == 2);
+    assert(deque[0] == 2);
+    assert(deque[1] == 3);
   }
 
+  // ================================================================
+  // Test: Simulate a queue with VIP front insertion.
+  // ================================================================
   {
-  dq::array<std::string, 10> line;
+    dq::array<std::string, 10> line;
 
-  // People join the line
-  line.push_back("Alice");
-  line.push_back("Bob");
-  line.push_back("Charlie");
+    line.push_back("Alice");
+    line.push_back("Bob");
+    line.push_back("Charlie");
 
-  // Check the first person in line
-  assert(line.front() == "Alice");
+    assert(line.front() == "Alice");
 
-  // A VIP joins the line at the front
-  line.push_front("Dave");
+    line.push_front("Dave");
+    assert(line.front() == "Dave");
 
-  // Check the first person in line now
-  assert(line.front() == "Dave");
+    line.pop_front();
+    assert(line.front() == "Alice");
 
-  // The concert starts, people start buying tickets and leaving the line from the front
-  line.pop_front();
-  assert(line.front() == "Alice");
+    line.push_front("Eve");
+    assert(line.front() == "Eve");
 
-  // Another VIP joins the line at the front
-  line.push_front("Eve");
+    while(!line.empty()) {
+        line.pop_front();
+    }
 
-  // Check the first person in line now
-  assert(line.front() == "Eve");
-
-  // The concert starts, people start buying tickets and leaving the line from the front
-  while(!line.empty()) {
-      line.pop_front();
+    assert(line.empty());
   }
 
-  // Check that the line is empty
-  assert(line.empty());
-  }
-
+  // ================================================================
+  // Test: Front and back symmetry.
+  // ================================================================
   {
-  dq::array<std::string, 10> magicBox;
+    dq::array<std::string, 10> magicBox;
 
-  // Put an item from the front
-  magicBox.push_front("Gold");
-  assert(magicBox.back() == "Gold");
+    magicBox.push_front("Gold");
+    assert(magicBox.back() == "Gold");
 
-  // Put an item from the back
-  magicBox.push_back("Diamond");
-  assert(magicBox.back() == "Diamond");
+    magicBox.push_back("Diamond");
+    assert(magicBox.back() == "Diamond");
 
-  // The box should now contain two items
-  assert(magicBox.size() == 2);
+    assert(magicBox.size() == 2);
 
-  // Remove the item from the front
-  magicBox.pop_front();
-  assert(magicBox.front() == "Diamond");
+    magicBox.pop_front();
+    assert(magicBox.front() == "Diamond");
 
-  // Remove the item from the back
-  magicBox.pop_back();
-  assert(magicBox.empty());
+    magicBox.pop_back();
+    assert(magicBox.empty());
   }
 
+  // ================================================================
+  // Test: Iterator arithmetic with std::advance.
+  // ================================================================
   {
-  dq::array<int, 10> d;
+    dq::array<int, 10> d;
 
-  // Fill the deque with numbers from 0 to 9
-  for(int i = 0; i < 10; ++i) d.push_back(i);
+    for(int i = 0; i < 10; ++i) d.push_back(i);
 
-  // Get an iterator to the first element
-  auto it = d.begin();
+    auto it = d.begin();
 
-  // Advance the iterator by 5 positions
-  std::advance(it, 5);
-  assert(*it == 5);
+    std::advance(it, 5);
+    assert(*it == 5);
 
-  // Advance the iterator by 2 positions
-  std::advance(it, 2);
-  assert(*it == 7);
+    std::advance(it, 2);
+    assert(*it == 7);
 
-  // Move the iterator back by 3 positions
-  std::advance(it, -3);
-  assert(*it == 4);
+    std::advance(it, -3);
+    assert(*it == 4);
   }
 
+  // ================================================================
+  // Test: std::remove_if integration.
+  // ================================================================
   {
-  dq::array<int, 10> d = {1, 2, 3, 4, 5};
-  d.erase(std::remove_if(d.begin(), d.end(), [](int n){ return n % 2 == 0; }), d.end());
-  for (int n : d) assert(n % 2 != 0);
+    dq::array<int, 10> d = {1, 2, 3, 4, 5};
+    d.erase(std::remove_if(d.begin(), d.end(), [](int n){ return n % 2 == 0; }), d.end());
+    for (int n : d) assert(n % 2 != 0);
   }
 
+  // ================================================================
+  // Test: dq::erase_if helper.
+  // ================================================================
   {
-  dq::array<int, 10> d = {1, 2, 3, 4, 5};
-  assert(2 == dq::erase_if(d, [](int n){ return n % 2 == 0; }));
-  for (int n : d) assert(n % 2 != 0);
+    dq::array<int, 10> d = {1, 2, 3, 4, 5};
+    assert(2 == dq::erase_if(d, [](int n){ return n % 2 == 0; }));
+    for (int n : d) assert(n % 2 != 0);
   }
 
+  // ================================================================
+  // Test: std::unique integration.
+  // ================================================================
   {
-  dq::array<int, 20> dq{1, 2, 2, 3, 3, 3, 4, 4, 4, 4};
-  dq.erase(std::unique(dq.begin(), dq.end()), dq.end());
-  assert((dq == (int[]){1, 2, 3, 4}));
+    dq::array<int, 20> dq{1, 2, 2, 3, 3, 3, 4, 4, 4, 4};
+    dq.erase(std::unique(dq.begin(), dq.end()), dq.end());
+    assert((dq == std::array{1, 2, 3, 4}));
   }
 
+  // ================================================================
+  // Test: Insert a range from a different container type.
+  // ================================================================
   {
-  dq::array<int, 10> d = {1, 2, 3, 4};
-  dq::array<int, 10> l = {-1, -2, -3};
-  auto pos = std::next(d.begin(), 2);
-  d.insert(pos, l.begin(), l.end());
-  assert((d == (int[]){1, 2, -1, -2, -3, 3, 4}));
+    dq::array<int, 10> d = {1, 2, 3, 4};
+    dq::array<int, 10> l = {-1, -2, -3};
+    auto pos = std::next(d.begin(), 2);
+    d.insert(pos, l.begin(), l.end());
+    assert((d == std::array{1, 2, -1, -2, -3, 3, 4}));
   }
 
+  // ================================================================
+  // Test: std::merge and std::reverse integration.
+  // ================================================================
   {
-  dq::array<int, 10> dq1{1, 2, 3, 4, 5};
-  dq::array<int, 10> dq2{6, 7, 8, 9, 10};
+    dq::array<int, 10> dq1{1, 2, 3, 4, 5};
+    dq::array<int, 10> dq2{6, 7, 8, 9, 10};
 
-  // Create a third deque to hold the merged result
-  dq::array<int, 10> mdq(10);
+    dq::array<int, 10> mdq(10);
 
-  // Merge the two deques
-  std::merge(dq1.begin(), dq1.end(), dq2.begin(), dq2.end(), mdq.begin());
+    std::merge(dq1.begin(), dq1.end(), dq2.begin(), dq2.end(), mdq.begin());
 
-  // Expected merged deque
-  assert((mdq == dq::array<int, 10>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+    assert((mdq == dq::array<int, 10>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
 
-  // Reverse the merged deque
-  std::reverse(mdq.begin(), mdq.end());
+    std::reverse(mdq.begin(), mdq.end());
 
-  // Expected reversed deque
-  assert((mdq == (int[]){10, 9, 8, 7, 6, 5, 4, 3, 2, 1}));
+    assert((mdq == std::array{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}));
   }
 
+  // ================================================================
+  // Test: Shuffle, rotate, reverse, and sort round-trip.
+  // ================================================================
   {
-  dq::array<int, 10> originalDeque{1, 2, 3, 4, 5};
-  auto deque{originalDeque};
+    dq::array<int, 10> originalDeque{1, 2, 3, 4, 5};
+    auto deque{originalDeque};
 
-  // Generate a random permutation of the deque's elements.
-  std::shuffle(deque.begin(), deque.end(), std::mt19937{std::random_device{}()});
+    std::shuffle(deque.begin(), deque.end(), std::mt19937{std::random_device{}()});
 
-  // Rotate the deque by a random amount greater than zero.
-  std::rotate(deque.begin(), deque.begin() + 1 + std::rand() % (deque.size() - 1), deque.end());
+    std::rotate(deque.begin(), deque.begin() + 1 + std::rand() % (deque.size() - 1), deque.end());
 
-  // Split the deque into two halves.
-  auto mid = deque.begin() + deque.size() / 2;
+    auto mid = deque.begin() + deque.size() / 2;
 
-  // Reverse the second half of the deque.
-  std::reverse(mid, deque.end());
-  std::sort(deque.begin(), deque.end());
+    std::reverse(mid, deque.end());
+    std::sort(deque.begin(), deque.end());
 
-  // Check if the deque is now in its original order.
-  assert(std::equal(deque.begin(), deque.end(), originalDeque.begin()));
+    assert(std::equal(deque.begin(), deque.end(), originalDeque.begin()));
   }
 
+  // ================================================================
+  // Test: Fill constructor with count and value.
+  // ================================================================
   {
-  dq::array<int, 10> a(5, 10);
+    dq::array<int, 10> a(5, 10);
 
-  // Check that the array has the correct size
-  assert(a.size() == 5);
+    assert(a.size() == 5);
 
-  // Check that all elements in the array are 10
-  for (const auto& e: a) assert(e == 10);
+    for (const auto& e: a) assert(e == 10);
   }
 
+  // ================================================================
+  // Test: Insert at beginning, middle, and end.
+  // ================================================================
   {
-  dq::array<int, 20> myDeque = {1, 2, 3, 4, 5};
+    dq::array<int, 20> myDeque = {1, 2, 3, 4, 5};
 
-  // Testing insert() at the beginning of the deque
-  auto it = myDeque.insert(myDeque.begin(), 0);
-  assert(myDeque.size() == 6);
-  assert(*it == 0);
-  assert(myDeque.front() == 0);
+    auto it = myDeque.insert(myDeque.begin(), 0);
+    assert(myDeque.size() == 6);
+    assert(*it == 0);
+    assert(myDeque.front() == 0);
 
-  // Testing insert() in the middle of the deque
-  it = myDeque.insert(myDeque.begin() + 3, 6);
-  assert(myDeque.size() == 7);
-  assert(*it == 6);
-  assert(myDeque[3] == 6);
+    it = myDeque.insert(myDeque.begin() + 3, 6);
+    assert(myDeque.size() == 7);
+    assert(*it == 6);
+    assert(myDeque[3] == 6);
 
-  // Testing insert() at the end of the deque
-  it = myDeque.insert(myDeque.end(), 7);
-  assert(myDeque.size() == 8);
-  assert(*it == 7);
-  assert(myDeque.back() == 7);
+    it = myDeque.insert(myDeque.end(), 7);
+    assert(myDeque.size() == 8);
+    assert(*it == 7);
+    assert(myDeque.back() == 7);
 
-  // Testing insert() with multiple elements
-  dq::array<int, 20> otherDeque = {8, 9, 10};
-  myDeque.insert(myDeque.begin() + 2, otherDeque.begin(), otherDeque.end());
-  assert(myDeque.size() == 11);
-  assert(myDeque[2] == 8);
-  assert(myDeque[3] == 9);
-  assert(myDeque[4] == 10);
+    dq::array<int, 20> otherDeque = {8, 9, 10};
+    myDeque.insert(myDeque.begin() + 2, otherDeque.begin(), otherDeque.end());
+    assert(myDeque.size() == 11);
+    assert(myDeque[2] == 8);
+    assert(myDeque[3] == 9);
+    assert(myDeque[4] == 10);
   }
 
+  // ================================================================
+  // Test: Erase with move-only types.
+  // ================================================================
   {
-  dq::array<std::unique_ptr<int>, 10> myDeque;
-  for (int i = 0; i < 10; i++) {
-    myDeque.push_back(std::make_unique<int>(i));
-    //myDeque.emplace_back(new int(i));
+    dq::array<std::unique_ptr<int>, 10> myDeque;
+    for (int i = 0; i < 10; i++) {
+      myDeque.push_back(std::make_unique<int>(i));
+    }
+
+    auto it = myDeque.begin() + 5;
+
+    it = myDeque.erase(it);
+
+    assert(myDeque.size() == 9);
+    assert(*myDeque[5] == 6);
+    assert(**it == 6);
   }
 
-  // Step 2: Choose an element to erase
-  auto it = myDeque.begin() + 5; // choose the 6th element to erase
-
-  // Step 3: Erase the element
-  it = myDeque.erase(it);
-
-  // Step 4: Use assert to verify the element has been erased
-  // Here we check that the size of the deque has been reduced by 1
-  assert(myDeque.size() == 9);
-
-  // Also, we can check that the 6th element is now what used to be the 7th
-  assert(*myDeque[5] == 6);
-  assert(**it == 6);
-  }
-
+  // ================================================================
+  // Test: Erase single element and ranges.
+  // ================================================================
   {
-  // Test erase() with a single element
-  dq::array<int, 10> deque = {1, 2, 3, 4, 5};
-  deque.erase(deque.begin() + 2);
-  assert((deque == (int[]){1, 2, 4, 5}));
+    dq::array<int, 10> deque = {1, 2, 3, 4, 5};
+    deque.erase(deque.begin() + 2);
+    assert((deque == std::array{1, 2, 4, 5}));
 
-  // Test erase() with a range of elements
-  deque = {1, 2, 3, 4, 5};
-  deque.erase(deque.begin() + 1, deque.begin() + 3);
-  assert((deque == (int[]){1, 4, 5}));
+    deque = {1, 2, 3, 4, 5};
+    deque.erase(deque.begin() + 1, deque.begin() + 3);
+    assert((deque == std::array{1, 4, 5}));
 
-  // Test erase() with a range of elements that includes the first element
-  deque = {1, 2, 3, 4, 5};
-  deque.erase(deque.begin(), deque.begin() + 2);
-  assert((deque == (int[]){3, 4, 5}));
+    deque = {1, 2, 3, 4, 5};
+    deque.erase(deque.begin(), deque.begin() + 2);
+    assert((deque == std::array{3, 4, 5}));
 
-  // Test erase() with a range of elements that includes the last element
-  deque = {1, 2, 3, 4, 5};
-  deque.erase(deque.begin() + 3, deque.end());
-  assert((deque == (int[]){1, 2, 3}));
+    deque = {1, 2, 3, 4, 5};
+    deque.erase(deque.begin() + 3, deque.end());
+    assert((deque == std::array{1, 2, 3}));
 
-  // Test erase() with a range of elements that includes the first and last elements
-  deque = {1, 2, 3, 4, 5};
-  deque.erase(deque.begin(), deque.end());
-  assert(deque.empty());
+    deque = {1, 2, 3, 4, 5};
+    deque.erase(deque.begin(), deque.end());
+    assert(deque.empty());
 
-  // Test erase() with a range of elements that includes the first and last elements, and the deque is empty
-  deque = {};
-  deque.erase(deque.begin(), deque.end());
-  assert(deque.empty());
+    deque = {};
+    deque.erase(deque.begin(), deque.end());
+    assert(deque.empty());
   }
 
+  // ================================================================
+  // Test: Swap with various container states.
+  // ================================================================
   {
-  // Test swap() with two deques
-  dq::array<int, 10, dq::NEW> deque1 = {1, 2, 3};
-  dq::array<int, 10, dq::NEW> deque2 = {4, 5, 6};
-  deque1.swap(deque2);
-  assert((deque1 == (int[]){4, 5, 6}));
-  assert((deque2 == (int[]){1, 2, 3}));
+    dq::array<int, 10, dq::NEW> deque1 = {1, 2, 3};
+    dq::array<int, 10, dq::NEW> deque2 = {4, 5, 6};
+    deque1.swap(deque2);
+    assert((deque1 == std::array{4, 5, 6}));
+    assert((deque2 == std::array{1, 2, 3}));
 
-  // Test swap() with two deques, one of which is empty
-  deque1 = {1, 2, 3};
-  deque2 = {};
-  deque1.swap(deque2);
-  assert(deque1.empty());
-  assert((deque2 == (int[]){1, 2, 3}));
+    deque1 = {1, 2, 3};
+    deque2 = {};
+    deque1.swap(deque2);
+    assert(deque1.empty());
+    assert((deque2 == std::array{1, 2, 3}));
 
-  // Test swap() with two deques, both of which are empty
-  deque1 = {};
-  deque2 = {};
-  deque1.swap(deque2);
-  assert(deque1.empty());
-  assert(deque2.empty());
+    deque1 = {};
+    deque2 = {};
+    deque1.swap(deque2);
+    assert(deque1.empty());
+    assert(deque2.empty());
 
-  // Test swap() with two deques, one of which is a subset of the other
-  deque1 = {1, 2, 3};
-  deque2 = {1, 2, 3, 4, 5};
-  deque1.swap(deque2);
-  assert((deque1 == (int[]){1, 2, 3, 4, 5}));
-  assert((deque2 == (int[]){1, 2, 3}));
+    deque1 = {1, 2, 3};
+    deque2 = {1, 2, 3, 4, 5};
+    deque1.swap(deque2);
+    assert((deque1 == std::array{1, 2, 3, 4, 5}));
+    assert((deque2 == std::array{1, 2, 3}));
   }
 
+  // ================================================================
+  // Test: Insert initializer lists at various positions.
+  // ================================================================
   {
-  // Test insert() with a single element
-  dq::array<int, 20, dq::NEW> deque = {1, 2, 3, 4, 5};
-  deque.insert(deque.begin() + 2, 6);
-  assert((deque == (int[]){1, 2, 6, 3, 4, 5}));
+    dq::array<int, 20, dq::NEW> deque = {1, 2, 3, 4, 5};
+    deque.insert(deque.begin() + 2, 6);
+    assert((deque == std::array{1, 2, 6, 3, 4, 5}));
 
-  // Test insert() with a range of elements
-  deque = {1, 2, 3, 4, 5};
-  deque.insert(deque.begin() + 2, {6, 7, 8});
-  assert((deque == (int[]){1, 2, 6, 7, 8, 3, 4, 5}));
+    deque = {1, 2, 3, 4, 5};
+    deque.insert(deque.begin() + 2, {6, 7, 8});
+    assert((deque == std::array{1, 2, 6, 7, 8, 3, 4, 5}));
 
-  // Test insert() with a range of elements that includes the first element
-  deque = {1, 2, 3, 4, 5};
-  deque.insert(deque.begin(), {6, 7, 8});
-  assert((deque == (int[]){6, 7, 8, 1, 2, 3, 4, 5}));
+    deque = {1, 2, 3, 4, 5};
+    deque.insert(deque.begin(), {6, 7, 8});
+    assert((deque == std::array{6, 7, 8, 1, 2, 3, 4, 5}));
 
-  // Test insert() with a range of elements that includes the last element
-  deque = {1, 2, 3, 4, 5};
-  deque.insert(deque.end(), {6, 7, 8});
-  assert((deque == (int[]){1, 2, 3, 4, 5, 6, 7, 8}));
+    deque = {1, 2, 3, 4, 5};
+    deque.insert(deque.end(), {6, 7, 8});
+    assert((deque == std::array{1, 2, 3, 4, 5, 6, 7, 8}));
 
-  // Test insert() with a range of elements that includes the first and last elements
-  deque = {1, 2, 3, 4, 5};
-  deque.insert(deque.begin(), {6, 7, 8});
-  deque.insert(deque.end(), {9, 10, 11});
-  assert((deque == (int[]){6, 7, 8, 1, 2, 3, 4, 5, 9, 10, 11}));
+    deque = {1, 2, 3, 4, 5};
+    deque.insert(deque.begin(), {6, 7, 8});
+    deque.insert(deque.end(), {9, 10, 11});
+    assert((deque == std::array{6, 7, 8, 1, 2, 3, 4, 5, 9, 10, 11}));
 
-  // Test insert() with a range of elements that includes the first and last elements, and the deque is empty
-  deque = {};
-  deque.insert(deque.begin(), {6, 7, 8});
-  deque.insert(deque.end(), {9, 10, 11});
-  assert((deque == (int[]){6, 7, 8, 9, 10, 11}));
+    deque = {};
+    deque.insert(deque.begin(), {6, 7, 8});
+    deque.insert(deque.end(), {9, 10, 11});
+    assert((deque == std::array{6, 7, 8, 9, 10, 11}));
   }
 
+  // ================================================================
+  // Test: append_range, prepend_range, and insert_range.
+  // ================================================================
   {
-  dq::array<int, 30> arr{1, 2, 3};
+    dq::array<int, 30> arr{1, 2, 3};
 
-  // Create a vector with elements 4, 5, 6
-  std::vector<int> vec{4, 5, 6};
+    std::vector<int> vec{4, 5, 6};
 
-  // Test append_range()
-  arr.append_range(vec);
-  assert((arr == (int[]){1, 2, 3, 4, 5, 6}));
+    arr.append_range(vec);
+    assert((arr == std::array{1, 2, 3, 4, 5, 6}));
 
-  // Test prepend_range()
-  arr.prepend_range(vec);
-  assert((arr == (int[]){4, 5, 6, 1, 2, 3, 4, 5, 6}));
+    arr.prepend_range(vec);
+    assert((arr == std::array{4, 5, 6, 1, 2, 3, 4, 5, 6}));
 
-  // Test insert_range()
-  auto it = arr.begin();
-  std::advance(it, 3); // Move iterator to the 4th element
-  arr.insert_range(it, vec);
-  assert((arr == (int[]){4, 5, 6, 4, 5, 6, 1, 2, 3, 4, 5, 6}));
+    auto it = arr.begin();
+    std::advance(it, 3);
+    arr.insert_range(it, vec);
+    assert((arr == std::array{4, 5, 6, 4, 5, 6, 1, 2, 3, 4, 5, 6}));
   }
 
+  // ================================================================
+  // Test: Resize with explicit fill value.
+  // ================================================================
   {
-  dq::array<int, 20> dq = {1, 2, 3, 4, 5};
+    dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
-  // Resize the deque to 3 elements
-  dq.resize(3);
+    dq.resize(3);
+    assert(dq.size() == 3);
+    assert(dq[0] == 1);
+    assert(dq[1] == 2);
+    assert(dq[2] == 3);
 
-  // Check the size of the deque
-  assert(dq.size() == 3);
-
-  // Check the elements of the deque
-  assert(dq[0] == 1);
-  assert(dq[1] == 2);
-  assert(dq[2] == 3);
-
-  // Resize the deque to 5 elements
-  dq.resize(5, 100);
-
-  // Check the size of the deque
-  assert(dq.size() == 5);
-
-  // Check the elements of the deque
-  assert(dq[0] == 1);
-  assert(dq[1] == 2);
-  assert(dq[2] == 3);
-  assert(dq[3] == 100);
-  assert(dq[4] == 100);
+    dq.resize(5, 100);
+    assert(dq.size() == 5);
+    assert(dq[0] == 1);
+    assert(dq[1] == 2);
+    assert(dq[2] == 3);
+    assert(dq[3] == 100);
+    assert(dq[4] == 100);
   }
 
+  // ================================================================
+  // Test: General usage with iterators and modifiers.
+  // ================================================================
   {
-  dq::array<int, 20> myDeque;
+    dq::array<int, 20> myDeque;
 
-  // Adding elements to the deque
-  myDeque.push_back(10);
-  myDeque.push_front(5);
-  myDeque.push_back(20);
+    myDeque.push_back(10);
+    myDeque.push_front(5);
+    myDeque.push_back(20);
 
-  // Checking the size of the deque
-  assert(myDeque.size() == 3);
+    assert(myDeque.size() == 3);
 
-  // Accessing elements using iterators
-  auto it = myDeque.begin();
-  assert(*it == 5);
+    auto it = myDeque.begin();
+    assert(*it == 5);
 
-  // Modifying elements
-  *it = 15;
-  assert(myDeque.front() == 15);
+    *it = 15;
+    assert(myDeque.front() == 15);
 
-  // Removing elements
-  myDeque.pop_front();
-  assert(myDeque.front() == 10);
+    myDeque.pop_front();
+    assert(myDeque.front() == 10);
 
-  // Clearing the deque
-  myDeque.clear();
-  assert(myDeque.empty());
+    myDeque.clear();
+    assert(myDeque.empty());
   }
 
+  // ================================================================
+  // Test: Comprehensive functional test case.
+  // ================================================================
   {
-  // Test Case 1: Basic functionality
-  dq::array<int, 20> deque1 = {1, 2, 3};
-  assert(deque1.size() == 3);
-  assert(deque1[0] == 1);
-  assert(deque1[1] == 2);
-  assert(deque1[2] == 3);
+    dq::array<int, 20> deque1 = {1, 2, 3};
+    assert(deque1.size() == 3);
+    assert(deque1[0] == 1);
+    assert(deque1[1] == 2);
+    assert(deque1[2] == 3);
 
-  // Test Case 2: Adding elements to the front and back
-  deque1.push_front(0);
-  deque1.push_back(4);
-  assert(deque1.size() == 5);
-  assert(deque1[0] == 0);
-  assert(deque1[4] == 4);
+    deque1.push_front(0);
+    deque1.push_back(4);
+    assert(deque1.size() == 5);
+    assert(deque1[0] == 0);
+    assert(deque1[4] == 4);
 
-  // Test Case 3: Iterating through the deque
-  int sum = 0;
-  for (const auto& elem : deque1) {
-      sum += elem;
-  }
-  assert(sum == 10);
+    int sum = 0;
+    for (const auto& elem : deque1) {
+        sum += elem;
+    }
+    assert(sum == 10);
 
-  // Test Case 4: Erasing elements
-  deque1.erase(deque1.begin() + 2); // Erase element at index 2
-  assert(deque1.size() == 4);
-  assert(deque1[2] == 3);
+    deque1.erase(deque1.begin() + 2);
+    assert(deque1.size() == 4);
+    assert(deque1[2] == 3);
 
-  // Test Case 5: Clearing the deque
-  deque1.clear();
-  assert(deque1.empty());
+    deque1.clear();
+    assert(deque1.empty());
 
-  // Test Case 6: Emplace elements
-  deque1.emplace_back(10);
-  deque1.emplace_front(5);
-  assert(deque1.size() == 2);
-  assert(deque1[0] == 5);
-  assert(deque1[1] == 10);
-  assert(dq::find(deque1, 10));
-  assert(dq::erase(deque1, 5, 10));
-  assert(deque1.empty());
-  assert(!dq::find(deque1, 10));
+    deque1.emplace_back(10);
+    deque1.emplace_front(5);
+    assert(deque1.size() == 2);
+    assert(deque1[0] == 5);
+    assert(deque1[1] == 10);
+    assert(dq::find(deque1, 10));
+    assert(dq::erase(deque1, 5, 10));
+    assert(deque1.empty());
+    assert(!dq::find(deque1, 10));
   }
 
+  // ================================================================
+  // Test: dq::erase and dq::erase_if with std::find validation.
+  // ================================================================
   {
-  dq::array<int, 10> d{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  
-  // Use std::erase to remove all elements equal to 5
-  dq::erase(d, 5);
-  assert(std::find(d.begin(), d.end(), 5) == d.end());
-  assert(!dq::find(d, 5));
+    dq::array<int, 10> d{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-  // Use std::erase_if to remove all even numbers
-  dq::erase_if(d, [](int n){ return n % 2 == 0; });
-  assert(std::none_of(d.begin(), d.end(), [](int n){ return n % 2 == 0; }));
-  assert(!dq::find_if(d, [](int n){ return n % 2 == 0; }));
+    dq::erase(d, 5);
+    assert(std::find(d.begin(), d.end(), 5) == d.end());
+    assert(!dq::find(d, 5));
+
+    dq::erase_if(d, [](int n){ return n % 2 == 0; });
+    assert(std::none_of(d.begin(), d.end(), [](int n){ return n % 2 == 0; }));
+    assert(!dq::find_if(d, [](int n){ return n % 2 == 0; }));
   }
 
+  // ================================================================
+  // Test: erase_if and erase helpers with expected results.
+  // ================================================================
   {
-  dq::array<int, 10> d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  dq::erase_if(d, [](int i){ return i % 2 == 0; });
-  assert(d.size() == 5);
-  assert((d == dq::array<int, 10>{1, 3, 5, 7, 9}));
+    dq::array<int, 10> d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    dq::erase_if(d, [](int i){ return i % 2 == 0; });
+    assert(d.size() == 5);
+    assert((d == dq::array<int, 10>{1, 3, 5, 7, 9}));
 
-  d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  dq::erase(d, 5);
-  assert(d.size() == 9);
-  assert((d == (int[]){1, 2, 3, 4, 6, 7, 8, 9, 10}));
+    d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    dq::erase(d, 5);
+    assert(d.size() == 9);
+    assert((d == std::array{1, 2, 3, 4, 6, 7, 8, 9, 10}));
   }
 
+  // ================================================================
+  // Test: Range erase with various boundaries.
+  // ================================================================
   {
-  dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-  // Test 1: Erase from beginning to middle
-  dq.erase(dq.begin(), dq.begin() + 5);
-  assert(dq.size() == 5);
-  assert((dq == decltype(dq){6, 7, 8, 9, 10}));
+    dq.erase(dq.begin(), dq.begin() + 5);
+    assert(dq.size() == 5);
+    assert((dq == decltype(dq){6, 7, 8, 9, 10}));
 
-  // Test 2: Erase from middle to end
-  dq.erase(dq.begin() + 1, dq.end());
-  assert(dq.size() == 1);
-  assert(dq.front() == 6);
+    dq.erase(dq.begin() + 1, dq.end());
+    assert(dq.size() == 1);
+    assert(dq.front() == 6);
 
-  // Test 3: Erase entire deque
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
 
-  // Test 4: Erase from empty deque
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
 
-  // Test 5: Erase from one element
-  dq.push_back(1);
-  dq.erase(dq.begin(), dq.begin() + 1);
-  assert(dq.empty());
+    dq.push_back(1);
+    dq.erase(dq.begin(), dq.begin() + 1);
+    assert(dq.empty());
 
-  // Test 6: Erase from one element to end
-  dq.push_back(1, 2);
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
+    dq.push_back(1, 2);
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
 
-  // Test 7: Erase from begin to end of one element
-  dq.push_back(1);
-  dq.erase(dq.begin());
-  assert(dq.empty());
+    dq.push_back(1);
+    dq.erase(dq.begin());
+    assert(dq.empty());
 
-  // Test 9: Erase from begin to end of three elements
-  dq.push_back(1, 2, 3);
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
+    dq.push_back(1, 2, 3);
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
 
-  // Test 10: Erase from begin to end of four elements
-  dq.push_back(1, 2, 3, 4);
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
+    dq.push_back(1, 2, 3, 4);
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
 
-  dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-  dq.erase(dq.begin() + 2, dq.begin() + 5);
-  assert(dq.size() == 7);  // The size should now be 7.
+    dq.erase(dq.begin() + 2, dq.begin() + 5);
+    assert(dq.size() == 7);
   }
 
+  // ================================================================
+  // Test: Range erase returning correct iterators.
+  // ================================================================
   {
-  dq::array<int, 10> dq{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    dq::array<int, 10> dq{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-  // Test 1: Erase a range of elements from the deque
-  dq.erase(dq.begin() + 2, dq.begin() + 5);
-  assert((dq == (int[]){1, 2, 6, 7, 8, 9, 10}));
+    dq.erase(dq.begin() + 2, dq.begin() + 5);
+    assert((dq == std::array{1, 2, 6, 7, 8, 9, 10}));
 
-  // Test 2: Erase the entire deque
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
 
-  // Test 3: Erase a single element from the deque
-  dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  dq.erase(dq.begin() + 4); // Erase '5'
-  assert((dq == (int[]){1, 2, 3, 4, 6, 7, 8, 9, 10}));
+    dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    dq.erase(dq.begin() + 4);
+    assert((dq == std::array{1, 2, 3, 4, 6, 7, 8, 9, 10}));
 
-  // Test 4: Erase a range with the same start and end iterator
-  auto it = dq.begin() + 3;
-  dq.erase(it, it);
-  assert((dq == (int[]){1, 2, 3, 4, 6, 7, 8, 9, 10}));
+    auto it = dq.begin() + 3;
+    dq.erase(it, it);
+    assert((dq == std::array{1, 2, 3, 4, 6, 7, 8, 9, 10}));
 
-  // Test 5: Erase a range that encompasses the entire deque
-  dq.erase(dq.begin(), dq.end());
-  assert(dq.empty());
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
 
-  // Test 6: Erase an empty range from the deque
-  dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  dq.erase(dq.end(), dq.end());
-  assert((dq == (int[]){1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+    dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    dq.erase(dq.end(), dq.end());
+    assert((dq == std::array{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
   }
 
+  // ================================================================
+  // Test: Range construction from a C array.
+  // ================================================================
   {
     int const a[10]{};
     assert(std::ranges::equal(a, dq::array<int, 10>(a)));
   }
 
-  { // test_ranges
+  // ================================================================
+  // Test: std::ranges algorithms integration.
+  // ================================================================
+  {
     dq::array<int, 20> dq = {3, 1, 4, 1, 5};
 
-    // ranges::sort works with our iterator/sentinel pair
     std::ranges::sort(dq);
     assert(std::ranges::is_sorted(dq));
     assert(std::ranges::equal(dq, std::array{1, 1, 3, 4, 5}));
 
-    // ranges::contains
     assert(std::ranges::find(dq, 3) != dq.end());
     assert(std::ranges::count(dq, 1) == 2);
   }
 
-  { // test_move_only
+  // ================================================================
+  // Test: Move-only types.
+  // ================================================================
+  {
     dq::array<std::unique_ptr<int>, 10> dq;
     dq.emplace_back(std::make_unique<int>(7));
     dq.emplace_front(std::make_unique<int>(9));
@@ -1229,57 +1232,65 @@ void test1() {
     assert(*dq.front() == 9);
     assert(*dq.back()  == 7);
 
-    // erase in the middle
-    dq.erase(dq.begin()); // destroy the 9
+    dq.erase(dq.begin());
     assert(dq.size() == 1);
     assert(*dq.front() == 7);
   }
 
-  { // test_capacity_edge
+  // ================================================================
+  // Test: Capacity edge cases with circular overwrite.
+  // ================================================================
+  {
     dq::array<int, 4> dq{0, 1, 2, 3};
 
     assert(dq.full());
     assert(dq.size() == 4);
 
-    // push_back when full -> oldest element (0) must be overwritten
     dq.push_back(42);
     assert(dq.full());
     assert(dq.size() == 4);
     assert(dq.back()  == 42);
-    assert(dq.front() == 1);        // 0 has been popped
+    assert(dq.front() == 1);
 
-    // push_front when full
     dq.push_front(99);
     assert(dq.full());
     assert(dq.front() == 99);
     assert(dq.back()  == 42);
   }
 
-  { // test_heterogeneous_lookup
+  // ================================================================
+  // Test: Heterogeneous lookup with std::string_view.
+  // ================================================================
+  {
     dq::array<std::string, 10> dq = {"apple", "banana", "pear"};
-    // transparent operator== via std::string_view
     assert(std::ranges::find(dq, std::string_view("banana")) != dq.end());
     assert(std::ranges::find(dq, std::string_view("grape")) == dq.end());
   }
 
-  { // test_iterator_stability
+  // ================================================================
+  // Test: Iterator stability after insert and erase.
+  // ================================================================
+  {
     dq::array<int, 20> dq = {0,1,2,3,4,5};
-    auto it = dq.begin() + 3; // points at 3
+    auto it = dq.begin() + 3;
     auto dist = std::distance(dq.begin(), it);
 
-    dq.insert(it, 42);        // invalidate it
-    it = dq.begin() + dist;   // rebuild
+    dq.insert(it, 42);
+    it = dq.begin() + dist;
     assert(*it == 42);
 
-    it = dq.erase(it);        // erase returns iterator *after* the removed one
+    it = dq.erase(it);
     assert(*it == 3);
   }
 
-  { // test_stress
+  // ================================================================
+  // Test: Randomized stress test.
+  // ================================================================
+  {
     constexpr int N = 1'000;
     dq::array<int, N> dq;
     std::mt19937 rng{std::random_device{}()};
-    std::uniform_int_distribution<int> op(0, 3); // 0-push_back, 1-push_front, 2-pop_back, 3-pop_front
+    std::uniform_int_distribution<int> op(0, 3);
 
     for (int i = 0; i < 10 * N; ++i)
     {
@@ -1294,51 +1305,71 @@ void test1() {
     }
   }
 
-  { // test_ranges_projection
+  // ================================================================
+  // Test: Ranges projection with custom struct.
+  // ================================================================
+  {
     struct Point { int x, y; };
     dq::array<Point, 10> dq = {{5,6}, {1,2}, {3,4}};
 
-    // sort by y-coordinate via projection
     std::ranges::sort(dq, std::less<>{}, &Point::y);
     assert(dq[0].y == 2 && dq[2].y == 6);
   }
 
-  { // test_const_iterators
+  // ================================================================
+  // Test: Const iterators yield const references.
+  // ================================================================
+  {
     const dq::array<int, 5> dq = {10,20,30};
     static_assert(std::same_as<decltype(dq.begin()), dq::array<int,5>::const_iterator>);
     assert(std::accumulate(dq.begin(), dq.end(), 0) == 60);
   }
 
-  { // test_resize_value_init
+  // ================================================================
+  // Test: Resize with value initialization.
+  // ================================================================
+  {
     dq::array<int, 10> dq = {1,2,3};
-    dq.resize(6, 42);        // expand with value
+    dq.resize(6, 42);
     assert(dq.size() == 6);
     assert(dq[3] == 42 && dq[5] == 42);
 
-    dq.resize(2);            // shrink
+    dq.resize(2);
     assert(dq.size() == 2);
   }
 
-  { // test_self_swap
+  // ================================================================
+  // Test: Self-swap is a no-op.
+  // ================================================================
+  {
     dq::array<int, 5> dq = {1,2,3};
-    dq.swap(dq);             // must be no-op
+    dq.swap(dq);
     assert(dq.size() == 3 && dq[0] == 1);
   }
 
-  { // test_reverse_ranges
+  // ================================================================
+  // Test: Reverse iterator ranges.
+  // ================================================================
+  {
     dq::array<int, 10> dq = {1,2,3,2,1};
     auto rfirst = dq.rbegin(), rlast = dq.rend();
     assert(std::ranges::count(rfirst, rlast, 2) == 2);
   }
 
-  { // test_erase_if_capture
+  // ================================================================
+  // Test: erase_if with lambda capture.
+  // ================================================================
+  {
     dq::array<int, 10> dq = {1,2,3,4,5,6};
     int threshold = 4;
     dq::erase_if(dq, [threshold](int x){ return x > threshold; });
-    assert((dq == (int[]){1,2,3,4}));
+    assert((dq == std::array{1,2,3,4}));
   }
 
-  { // test_spsc
+  // ================================================================
+  // Test: Single-producer single-consumer threading.
+  // ================================================================
+  {
     dq::array<int, 10> buffer;
     std::atomic<bool> done{};
     std::mutex m;
@@ -1365,40 +1396,54 @@ void test1() {
     producer.join();
     consumer.join();
 
-    assert(consumed == 999*1000/2); // 0+1+...+999
+    assert(consumed == 999*1000/2);
   }
 
-  { // test_insert_raw_array
+  // ================================================================
+  // Test: Insert from a raw C array.
+  // ================================================================
+  {
     int raw[] = {9,8,7};
     dq::array<int, 10> dq = {1,2,3};
     dq.insert(dq.begin()+1, std::begin(raw), std::end(raw));
-    assert((dq == (int[]){1,9,8,7,2,3}));
+    assert((dq == std::array{1,9,8,7,2,3}));
   }
 
-  { // test_assign_init_list
+  // ================================================================
+  // Test: assign with an initializer list.
+  // ================================================================
+  {
     dq::array<int, 10> dq;
     dq.assign({10,20,30});
-    assert((dq == (int[]){10,20,30}));
+    assert((dq == std::array{10,20,30}));
     assert(dq.size() == 3);
   }
 
-  { // test_std_swap
+  // ================================================================
+  // Test: std::swap overload.
+  // ================================================================
+  {
     dq::array<std::string, 5> a = {"a","b"};
     dq::array<std::string, 5> b = {"x","y","z"};
     std::swap(a,b);
-    assert((a == (std::string[]){"x","y","z"}));
-    assert((b == (std::string[]){"a","b"}));
+    assert((a == std::initializer_list<std::string_view>{"x","y","z"}));
+    assert((b == std::initializer_list<std::string_view>{"a","b"}));
   }
 
-  { // test_inner_product
+  // ================================================================
+  // Test: std::inner_product integration.
+  // ================================================================
+  {
     dq::array<int, 5> a = {1,2,3};
     dq::array<int, 5> b = {4,5,6};
     int dot = std::inner_product(a.begin(), a.end(), b.begin(), 0);
-    assert(dot == 32); // 1*4 + 2*5 + 3*6
+    assert(dot == 32);
   }
 
+  // ================================================================
+  // Test: Exact reverse iteration.
+  // ================================================================
   {
-    // test_reverse_exact
     dq::array<int, 6> dq = {0,1,2,3,4,5};
     std::vector<int> expected = {5,4,3,2,1,0};
     std::vector<int> actual;
@@ -1406,16 +1451,22 @@ void test1() {
     assert(actual == expected);
   }
 
-  { // test_lex_compare
+  // ================================================================
+  // Test: Lexicographical comparison via ranges.
+  // ================================================================
+  {
     dq::array<int, 20> dq = {1,2,3};
     std::vector<int> v = {1,2,3,4};
 
-    assert(std::ranges::lexicographical_compare(dq, v)); // < 0
-    assert(!std::ranges::lexicographical_compare(v, dq)); // > 0
-    assert(!std::ranges::lexicographical_compare(dq, dq)); // == 0
+    assert(std::ranges::lexicographical_compare(dq, v));
+    assert(!std::ranges::lexicographical_compare(v, dq));
+    assert(!std::ranges::lexicographical_compare(dq, dq));
   }
 
-  { // test_fill_then_modify
+  // ================================================================
+  // Test: Fill construction and subsequent modification.
+  // ================================================================
+  {
     dq::array<int, 10> dq(7, 42);
     assert(dq.size() == 7);
     assert(std::all_of(dq.begin(), dq.end(), [](int x){ return x==42; }));
@@ -1425,7 +1476,10 @@ void test1() {
     assert(std::count(dq.begin(), dq.end(), 42) == 6);
   }
 
-  { // test_front_back_mirror
+  // ================================================================
+  // Test: Front element tracking through cyclic overwrites.
+  // ================================================================
+  {
     dq::array<char, 4> dq;
     for (char c = 'a'; c <= 'z'; ++c)
     {
@@ -1435,24 +1489,32 @@ void test1() {
     }
   }
 
-  { // test_shrink
+  // ================================================================
+  // Test: Shrink via resize.
+  // ================================================================
+  {
     dq::array<int, 100> dq(std::ranges::iota_view{0, 50});
-    dq.resize(10); // downsize
+    dq.resize(10);
     assert(dq.size() == 10);
     assert(dq.front() == 0 && dq.back() == 9);
   }
 
-  { // test_ranges_accumulate
+  // ================================================================
+  // Test: Parallel unsequenced reduce.
+  // ================================================================
+  {
     dq::array<int, 10> dq = {1,2,3,4,5};
     int sum = std::reduce(std::execution::unseq, dq.begin(), dq.end(), 0);
     assert(sum == 15);
   }
 
-  { // test_back_forth_equivalence
+  // ================================================================
+  // Test: Rotational equivalence of push_front and pop_back.
+  // ================================================================
+  {
     dq::array<int, 8> a = {1,2,3,4,5,6};
     auto b = a;
 
-    // push_front / pop_back 6 times must restore original order
     for (unsigned i = 0; i < 6; ++i)
     {
       auto const t(b.back());
@@ -1462,17 +1524,22 @@ void test1() {
     assert(a == b);
   }
 
-  { // test_rotate
+  // ================================================================
+  // Test: std::rotate and reverse rotate.
+  // ================================================================
+  {
     dq::array<int, 10> dq = {1,2,3,4,5};
-    std::rotate(dq.begin(), dq.begin()+2, dq.end()); // 3,4,5,1,2
-    assert((dq == (int[]){3,4,5,1,2}));
+    std::rotate(dq.begin(), dq.begin()+2, dq.end());
+    assert((dq == std::array{3,4,5,1,2}));
 
-    std::rotate(dq.rbegin(), dq.rbegin()+2, dq.rend()); // reverse rotate
-    assert((dq == (int[]){1,2,3,4,5}));
+    std::rotate(dq.rbegin(), dq.rbegin()+2, dq.rend());
+    assert((dq == std::array{1,2,3,4,5}));
   }
 
+  // ================================================================
+  // Test: Non-trivial type with full capacity overwrites.
+  // ================================================================
   {
-    // Test with std::string (non-trivial type) and full capacity overwrite
     dq::array<std::string, 5> dq;
     dq.push_back("hello");
     dq.push_back("world");
@@ -1485,24 +1552,24 @@ void test1() {
     dq.pop_front();
     assert(dq.front() == "hello");
 
-    // Test full capacity with push_back
     dq = {"a", "b", "c", "d", "e"};
     assert(dq.full());
-    dq.push_back("f"); // should remove "a"
+    dq.push_back("f");
     assert(dq.size() == 5);
     assert(dq[0] == "b");
     assert(dq[4] == "f");
 
-    // Test full capacity with push_front
     dq = {"a", "b", "c", "d", "e"};
-    dq.push_front("f"); // should remove "e"
+    dq.push_front("f");
     assert(dq.size() == 5);
     assert(dq[0] == "f");
     assert(dq[4] == "e");
   }
 
+  // ================================================================
+  // Test: Move-only type lifecycle.
+  // ================================================================
   {
-    // Test with std::unique_ptr (move-only type)
     dq::array<std::unique_ptr<int>, 3> dq;
     dq.push_back(std::make_unique<int>(1));
     dq.push_back(std::make_unique<int>(2));
@@ -1512,7 +1579,6 @@ void test1() {
     assert(*dq[1] == 1);
     assert(*dq[2] == 2);
 
-    // Move out an element and test container behavior
     auto p = std::move(dq[1]);
     assert(*p == 1);
     assert(!dq[1]);
@@ -1523,8 +1589,10 @@ void test1() {
     assert(*dq[0] == 3);
   }
 
+  // ================================================================
+  // Test: Self-assignment through a reference.
+  // ================================================================
   {
-    // Test self-assignment
     dq::array<int, 5> dq = {1, 2, 3};
     auto& dq_ref = dq;
     dq = dq_ref;
@@ -1532,16 +1600,20 @@ void test1() {
     assert(dq[0] == 1);
   }
 
+  // ================================================================
+  // Test: Self-swap with the NEW allocator.
+  // ================================================================
   {
-    // Test self-swap
     dq::array<int, 5, dq::NEW> dq = {1, 2, 3};
     dq.swap(dq);
     assert(dq.size() == 3);
     assert(dq[0] == 1);
   }
 
+  // ================================================================
+  // Test: Range assignment from a vector.
+  // ================================================================
   {
-    // Test range assignment
     std::vector<int> v = {10, 20, 30, 40};
     dq::array<int, 10> dq;
     dq.assign(v.begin(), v.end());
@@ -1550,8 +1622,10 @@ void test1() {
     assert(dq[3] == 40);
   }
 
+  // ================================================================
+  // Test: Destructor correctness via a counting type.
+  // ================================================================
   {
-    // Test for memory leaks using a counter type
     static int count;
     struct Counter {
       int x;
@@ -1577,8 +1651,10 @@ void test1() {
     assert(count == 0);
   }
 
+  // ================================================================
+  // Test: Stress test with mixed operations.
+  // ================================================================
   {
-    // Stress test with mixed operations
     dq::array<int, 100> dq;
     for (int i = 0; i < 10000; ++i) {
       switch (i % 5) {
@@ -1592,8 +1668,10 @@ void test1() {
     assert(dq.size() <= 100);
   }
 
+  // ================================================================
+  // Test: Heterogeneous lookup and multi-key erase.
+  // ================================================================
   {
-    // Test heterogeneous lookup with std::string_view
     dq::array<std::string, 5> dq = {"apple", "banana", "cherry"};
     auto it = dq::find(dq, "banana");
     assert(it && *it == "banana");
@@ -1603,35 +1681,33 @@ void test1() {
     assert(dq.empty());
   }
 
-  { // test_iterator_navigation
+  // ================================================================
+  // Test: Iterator navigation with std::advance, next, and prev.
+  // ================================================================
+  {
     dq::array<int, 20> dq = { 10, 20, 30, 40, 50, 60, 70 };
 
     auto it = dq.begin();
 
-    /* ---------- std::advance ---------- */
-    std::advance(it, 3);              // positive
+    std::advance(it, 3);
     assert(*it == 40);
 
-    std::advance(it, -2);             // negative
+    std::advance(it, -2);
     assert(*it == 20);
 
-    std::advance(it, 0);              // zero
+    std::advance(it, 0);
     assert(*it == 20);
 
-    /* ---------- std::next ------------- */
-    assert(*std::next(it, 4)  == 60); // positive
-    assert(*std::next(it, -1) == 10); // negative
-    assert(*std::next(it, 0)  == 20); // zero
+    assert(*std::next(it, 4)  == 60);
+    assert(*std::next(it, -1) == 10);
+    assert(*std::next(it, 0)  == 20);
 
-    /* ---------- std::prev ------------- */
     it = dq.end();
-    assert(*std::prev(it, 1)  == 70); // positive
-    assert(*std::prev(it, 3)  == 50); // positive
-    assert(*std::next(it, -2) == 60); // negative
-    assert(*std::next(it, -1)  == 70); // zero
+    assert(*std::prev(it, 1)  == 70);
+    assert(*std::prev(it, 3)  == 50);
+    assert(*std::next(it, -2) == 60);
+    assert(*std::next(it, -1)  == 70);
 
-    /* ---------- edge cases ------------ */
-    // advance to end and back
     it = dq.begin();
     std::advance(it, static_cast<int>(dq.size()));
     assert(it == dq.end());
@@ -1639,17 +1715,845 @@ void test1() {
     std::advance(it, -static_cast<int>(dq.size()));
     assert(it == dq.begin());
 
-    // next/prev on rbegin/rend
     assert(*std::next(dq.rbegin(), 2) == 50);
     assert(*std::prev(dq.rend(), 3)   == 30);
+  }
+
+  // ================================================================
+  // Test: Static capacity and max_size accessors.
+  // ================================================================
+  {
+    dq::array<int, 7> dq = {1, 2, 3};
+    static_assert(dq.capacity() == 7);
+    assert(dq.capacity() == 7);
+    assert(dq.max_size() == PTRDIFF_MAX);
+    assert(dq.size() == 3);
+    assert(!dq.full());
+  }
+
+  // ================================================================
+  // Test: Raw pointer accessors data(), first(), and last().
+  // ================================================================
+  {
+    dq::array<int, 5> dq = {10, 20, 30};
+    assert(dq.data() != nullptr);
+    assert(dq.first() == &dq.front());
+    assert(dq.last()  != nullptr);
+    assert(dq.last() - dq.first() == static_cast<std::ptrdiff_t>(dq.size()));
+  }
+
+  // ================================================================
+  // Test: Bulk pop_front and pop_back.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8};
+    dq.pop_back(3);
+    assert(dq.size() == 5);
+    assert(dq.back()  == 5);
+    assert(dq.front() == 1);
+
+    dq.pop_front(2);
+    assert(dq.size() == 3);
+    assert(dq.front() == 3);
+    assert(dq.back()  == 5);
+
+    dq.pop_back(dq.size());
+    assert(dq.empty());
+  }
+
+  // ================================================================
+  // Test: assign with count and value.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq.assign(4, 99);
+    assert(dq.size() == 4);
+    assert(std::all_of(dq.begin(), dq.end(), [](int x){ return x == 99; }));
+
+    dq::array<int, 10> dq2;
+    dq2.assign(3, 7);
+    assert(dq2.size() == 3);
+    assert(dq2.front() == 7 && dq2.back() == 7);
+
+    dq.assign(0, 42);
+    assert(dq.empty());
+  }
+
+  // ================================================================
+  // Test: dq::copy to a raw buffer.
+  // ================================================================
+  {
+    dq::array<int, 5> dq = {10, 20, 30, 40, 50};
+    int buf[5]{};
+    dq::copy(dq, buf);
+    for (int i = 0; i < 5; ++i)
+      assert(buf[i] == dq[i]);
+
+    int buf2[3]{};
+    dq::copy(dq, buf2, 3);
+    assert(buf2[0] == 10 && buf2[1] == 20 && buf2[2] == 30);
+  }
+
+  // ================================================================
+  // Test: append from a raw pointer region.
+  // ================================================================
+  {
+    int src[] = {4, 5, 6};
+    dq::array<int, 10> dq = {1, 2, 3};
+    auto added = dq.append(src, 3);
+    assert(added == 3);
+    assert(dq.size() == 6);
+    assert((dq == std::array{1, 2, 3, 4, 5, 6}));
+
+    int big[20]{};
+    dq::array<int, 4> small = {1, 2};
+    auto capped = small.append(big, 20);
+    assert(capped == 2);
+    assert(small.size() == 4);
+    assert(small.full());
+  }
+
+  // ================================================================
+  // Test: split() and csplit() on unwrapped and wrapped states.
+  // ================================================================
+  {
+    dq::array<int, 6> dq = {1, 2, 3, 4};
+    auto segs = dq.split();
+    assert(segs[0][1] - segs[0][0] == 4);
+    assert(segs[1][0] == segs[1][1]);
+
+    dq::array<int, 4> circ;
+    circ.push_back(1);
+    circ.push_back(2);
+    circ.push_back(3);
+    circ.push_back(4);
+    circ.pop_front();
+    circ.push_back(5);
+    auto s = circ.split();
+    std::size_t total = (s[0][1] - s[0][0]) + (s[1][1] - s[1][0]);
+    assert(total == 4);
+
+    int rebuilt[4]{};
+    int* p = rebuilt;
+    for (auto [i, j] : circ.csplit())
+      for (auto k = i; k != j; ++k) *p++ = *k;
+    assert((rebuilt[0] == 2 && rebuilt[1] == 3 &&
+            rebuilt[2] == 4 && rebuilt[3] == 5));
+  }
+
+  // ================================================================
+  // Test: dq::copy on a wrapped buffer.
+  // ================================================================
+  {
+    dq::array<int, 4> circ;
+    circ.push_back(10); circ.push_back(20);
+    circ.push_back(30); circ.push_back(40);
+    circ.pop_front(); circ.push_back(50);
+    int out[4]{};
+    dq::copy(circ, out);
+    assert(out[0]==20 && out[1]==30 && out[2]==40 && out[3]==50);
+  }
+
+  // ================================================================
+  // Test: Iterator explicit bool conversion.
+  // ================================================================
+  {
+    dq::array<int, 5> dq = {1, 2, 3};
+    auto it  = dq.begin();
+    auto end = dq.end();
+
+    while (it != end) {
+      assert(static_cast<bool>(it));
+      ++it;
+    }
+    assert(!static_cast<bool>(end));
+
+    const auto& cdq = dq;
+    auto cit = cdq.begin();
+    assert(static_cast<bool>(cit));
+    std::advance(cit, static_cast<int>(cdq.size()));
+    assert(!static_cast<bool>(cit));
+  }
+
+  // ================================================================
+  // Test: Variadic insert, push_back, and push_front.
+  // ================================================================
+  {
+    dq::array<int, 20> dq = {1, 5};
+    auto it = dq.insert(dq::multi, dq.cbegin() + 1, 2, 3, 4);
+    assert(dq.size() == 5);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
+    assert(*it == 2);
+
+    dq::array<int, 10> dq2;
+    dq2.push_back(10, 20, 30);
+    assert(dq2.size() == 3);
+    assert(dq2[0]==10 && dq2[1]==20 && dq2[2]==30);
+
+    dq::array<int, 10> dq3;
+    dq3.push_front(10, 20, 30);
+    assert(dq3.size() == 3);
+  }
+
+  // ================================================================
+  // Test: Member sort() with custom comparators.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {5, 3, 8, 1, 9, 2};
+    dq.sort(dq.begin(), dq.end());
+    assert(std::is_sorted(dq.begin(), dq.end()));
+
+    dq.sort(dq.begin(), dq.end(), std::greater<int>{});
+    assert(std::is_sorted(dq.begin(), dq.end(), std::greater<int>{}));
+
+    dq::array<int, 10> dq2 = {5, 3, 8, 1, 9, 2};
+    dq2.sort(dq2.begin() + 1, dq2.begin() + 5);
+    assert(std::is_sorted(dq2.begin() + 1, dq2.begin() + 5));
+    assert(dq2[0] == 5);
+    assert(dq2[5] == 2);
+  }
+
+  // ================================================================
+  // Test: Member sort() on a custom struct.
+  // ================================================================
+  {
+    struct Item { int key, val; };
+    dq::array<Item, 10> dq;
+    dq.push_back({3, 30}); dq.push_back({1, 10});
+    dq.push_back({4, 40}); dq.push_back({2, 20});
+
+    dq.sort(dq.begin(), dq.end(),
+      [](Item const& a, Item const& b){ return a.key < b.key; });
+
+    assert(dq[0].key == 1 && dq[1].key == 2 &&
+           dq[2].key == 3 && dq[3].key == 4);
+  }
+
+  // ================================================================
+  // Test: Range construction from views.
+  // ================================================================
+  {
+    auto doubled = std::views::iota(1, 6)
+                 | std::views::transform([](int x){ return x * 2; });
+    dq::array<int, 10> dq(doubled);
+    assert(dq.size() == 5);
+    assert((dq == std::array{2, 4, 6, 8, 10}));
+
+    auto evens = std::views::iota(1, 11)
+               | std::views::filter([](int x){ return x % 2 == 0; });
+    dq::array<int, 10> dq2(dq::from_range, evens);
+    assert(dq2.size() == 5);
+    assert((dq2 == std::array{2, 4, 6, 8, 10}));
+
+    dq::array<int, 5> dq3(dq::from_range, std::views::iota(0, 5));
+    assert((dq3 == std::array{0, 1, 2, 3, 4}));
+  }
+
+  // ================================================================
+  // Test: Assignment from a range.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {99, 99, 99};
+    dq = std::views::iota(1, 6);
+    assert(dq.size() == 5);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
+  }
+
+  // ================================================================
+  // Test: dq::find_if with various predicates.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {1, 3, 5, 7, 8, 9};
+
+    auto it = dq::find_if(dq, [](int x){ return x % 2 == 0; });
+    assert(it != dq.end() && *it == 8);
+
+    it = dq::find_if(dq, [](int x){ return x > 100; });
+    assert(it == dq.end());
+
+    const auto& cdq = dq;
+    auto cit = dq::find_if(cdq, [](int x){ return x == 5; });
+    assert(cit != cdq.end() && *cit == 5);
+  }
+
+  // ================================================================
+  // Test: dq::find with multiple keys.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {10, 20, 30, 40, 50};
+
+    auto it = dq::find(dq, 30, 40);
+    assert(it != dq.end() && (*it == 30 || *it == 40));
+
+    it = dq::find(dq, 99, 100);
+    assert(it == dq.end());
+    assert(!static_cast<bool>(it));
+  }
+
+  // ================================================================
+  // Test: Circular overwrite and dq::copy consistency.
+  // ================================================================
+  {
+    dq::array<int, 3> ring;
+    ring.push_back(1); ring.push_back(2); ring.push_back(3);
+    ring.push_back(4);
+    ring.push_back(5);
+
+    assert(ring.size() == 3);
+    assert(ring.front() == 3 && ring.back() == 5);
+
+    int out[3]{};
+    dq::copy(ring, out);
+    assert(out[0]==3 && out[1]==4 && out[2]==5);
+  }
+
+  // ================================================================
+  // Test: insert(pos, count, value).
+  // ================================================================
+  {
+    dq::array<int, 20> dq = {1, 2, 5};
+    auto it = dq.insert(dq.begin() + 2, 3, 99);
+    assert(dq.size() == 6);
+    assert(*it == 99);
+    assert(dq[2] == 99 && dq[3] == 99 && dq[4] == 99);
+    assert(dq[5] == 5);
+
+    auto it2 = dq.insert(dq.begin() + 1, 0, 42);
+    assert(dq.size() == 6);
+    (void)it2;
+  }
+
+  // ================================================================
+  // Test: Iterator distance across a wrap boundary.
+  // ================================================================
+  {
+    dq::array<int, 5> circ;
+    circ.push_back(1); circ.push_back(2); circ.push_back(3);
+    circ.push_back(4); circ.push_back(5);
+    circ.pop_front(); circ.push_back(6);
+
+    auto b = circ.begin();
+    auto e = circ.end();
+    assert(std::distance(b, e) == 5);
+
+    auto mid = b + 2;
+    assert(*mid == 4);
+    assert(mid - b == 2);
+    assert(e - mid == 3);
+  }
+
+  // ================================================================
+  // Test: Reverse iteration on a wrapped buffer.
+  // ================================================================
+  {
+    dq::array<int, 4> circ = {1, 2, 3, 4};
+    circ.pop_front(); circ.push_back(5);
+
+    std::vector<int> fwd(circ.begin(), circ.end());
+    std::vector<int> rev(circ.rbegin(), circ.rend());
+    std::reverse(rev.begin(), rev.end());
+    assert(fwd == rev);
+  }
+
+  // ================================================================
+  // Test: Self-range assign is a no-op.
+  // ================================================================
+  {
+    dq::array<int, 5> dq = {1, 2, 3};
+    dq.assign_range(dq);
+    assert(dq.size() == 3 && dq[0] == 1 && dq[2] == 3);
+  }
+
+  // ================================================================
+  // Test: Static capacity is compile-time constant.
+  // ================================================================
+  {
+    using A = dq::array<double, 16>;
+    static_assert(A::capacity() == 16);
+    A dq;
+    assert(dq.capacity() == 16);
+    assert(!dq.full());
+  }
+
+  // ================================================================
+  // Test: stable_sort() preserves relative order.
+  // ================================================================
+  {
+    struct Item { int key, idx; };
+    dq::array<Item, 10> dq;
+    dq.push_back({2, 0}); dq.push_back({1, 1});
+    dq.push_back({2, 2}); dq.push_back({1, 3});
+    dq.push_back({3, 4});
+
+    dq.stable_sort(dq.begin(), dq.end(),
+      [](Item const& a, Item const& b){ return a.key < b.key; });
+
+    assert(std::is_sorted(dq.begin(), dq.end(),
+      [](Item const& a, Item const& b){ return a.key < b.key; }));
+    assert(dq[0].idx == 1 && dq[1].idx == 3);
+    assert(dq[2].idx == 0 && dq[3].idx == 2);
+  }
+
+  // ================================================================
+  // Test: stable_sort() on a wrapped buffer.
+  // ================================================================
+  {
+    dq::array<int, 6> circ;
+    for (int v : {9, 3, 7, 1, 5, 4}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front();
+    circ.push_back(2); circ.push_back(8);
+    circ.stable_sort(circ.begin(), circ.end());
+    assert(std::is_sorted(circ.begin(), circ.end()));
+    assert((circ == std::array{1, 2, 4, 5, 7, 8}));
+  }
+
+  // ================================================================
+  // Test: stable_sort() with descending comparator.
+  // ================================================================
+  {
+    dq::array<int, 8> dq = {3, 1, 4, 1, 5, 9, 2, 6};
+    dq.stable_sort(dq.begin(), dq.end(), std::greater<int>{});
+    assert(std::is_sorted(dq.begin(), dq.end(), std::greater<int>{}));
+  }
+
+  // ================================================================
+  // Test: Zero-count bulk pop is a no-op.
+  // ================================================================
+  {
+    dq::array<int, 6> dq = {1, 2, 3};
+    dq.pop_front(0);
+    dq.pop_back(0);
+    assert(dq.size() == 3 && dq[0] == 1 && dq[2] == 3);
+  }
+
+  // ================================================================
+  // Test: NEW allocator move constructor transfers ownership.
+  // ================================================================
+  {
+    dq::array<int, 8, dq::NEW> a = {10, 20, 30};
+    auto* raw = a.data();
+
+    dq::array<int, 8, dq::NEW> b(std::move(a));
+    assert(b.data() == raw);
+    assert(b.size() == 3 && b[1] == 20);
+    assert(a.empty());
+    assert(a.data() != raw);
+  }
+
+  // ================================================================
+  // Test: NEW allocator move assignment swaps ownership.
+  // ================================================================
+  {
+    dq::array<int, 8, dq::NEW> a = {1, 2, 3};
+    dq::array<int, 8, dq::NEW> b = {4, 5, 6, 7};
+    auto* raw_a = a.data();
+    auto* raw_b = b.data();
+
+    b = std::move(a);
+    assert(b.data() == raw_a);
+    assert(a.data() == raw_b);
+    assert(a.empty());
+    assert(b.size() == 3 && b[0] == 1);
+  }
+
+  // ================================================================
+  // Test: erase_if returns the number of removed elements.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    auto n = dq::erase_if(dq, [](int x){ return x % 3 == 0; });
+    assert(n == 3);
+    assert(dq.size() == 7);
+    for (int x : dq) assert(x % 3 != 0);
+  }
+
+  // ================================================================
+  // Test: erase_if on a wrapped buffer.
+  // ================================================================
+  {
+    dq::array<int, 6> circ;
+    for (int v : {1, 2, 3, 4, 5, 6}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front();
+    circ.push_back(7); circ.push_back(8);
+    auto n = dq::erase_if(circ, [](int x){ return x % 2 == 0; });
+    assert(n == 3);
+    assert(circ.size() == 3);
+    for (int x : circ) assert(x % 2 != 0);
+  }
+
+  // ================================================================
+  // Test: insert_range returns iterator to first inserted element.
+  // ================================================================
+  {
+    std::vector<int> src = {10, 20, 30};
+    dq::array<int, 10> dq = {1, 2, 3};
+    auto it = dq.insert_range(dq.begin() + 1, src);
+    assert(*it == 10);
+    assert((dq == std::array{1, 10, 20, 30, 2, 3}));
+  }
+
+  // ================================================================
+  // Test: first() pointer arithmetic matches operator[].
+  // ================================================================
+  {
+    dq::array<int, 8> dq = {5, 10, 15, 20};
+    for (std::size_t i = 0; i < dq.size(); ++i)
+      assert(dq.first()[i] == dq[i]);
+  }
+
+  // ================================================================
+  // Test: Constexpr size and capacity queries.
+  // ================================================================
+  {
+    using A = dq::array<int, 5>;
+    static_assert(A::capacity() == 5);
+    static_assert(A::max_size() == PTRDIFF_MAX);
+
+    dq::array<int, 5> d = {10, 20, 30};
+    d[1] = 99;
+    assert(d[0] == 10 && d[1] == 99 && d[2] == 30);
+  }
+
+  // ================================================================
+  // Test: sort() on a wrapped buffer.
+  // ================================================================
+  {
+    dq::array<int, 6> circ;
+    for (int v : {5, 3, 1, 4, 2, 6}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front();
+    circ.push_back(9); circ.push_back(7);
+    circ.sort(circ.begin(), circ.end());
+    assert(std::is_sorted(circ.begin(), circ.end()));
+  }
+
+  // ================================================================
+  // Test: std::partition via random-access iterator.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {5, 2, 8, 1, 9, 3, 7, 4, 6};
+    auto mid = std::partition(dq.begin(), dq.end(), [](int x){ return x < 5; });
+    assert(std::all_of(dq.begin(), mid, [](int x){ return x < 5; }));
+    assert(std::all_of(mid, dq.end(), [](int x){ return x >= 5; }));
+  }
+
+  // ================================================================
+  // Test: std::nth_element via random-access iterator.
+  // ================================================================
+  {
+    dq::array<int, 8> dq = {7, 2, 5, 4, 1, 8, 3, 6};
+    auto mid = dq.begin() + 3;
+    std::nth_element(dq.begin(), mid, dq.end());
+    assert(*mid == 4);
+    assert(std::all_of(dq.begin(), mid, [](int x){ return x <= 4; }));
+    assert(std::all_of(mid + 1, dq.end(), [](int x){ return x >= 4; }));
+  }
+
+  // ================================================================
+  // Test: assign(count, value) overload.
+  // ================================================================
+  {
+    dq::array<int, 10> dq = {1, 2, 3};
+    dq.assign(5, 7);
+    assert(dq.size() == 5);
+    assert(std::all_of(dq.begin(), dq.end(), [](int x){ return x == 7; }));
+    dq.assign(0, 99);
+    assert(dq.empty());
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Emplace with multiple constructor arguments.
+  // ----------------------------------------------------------------
+  {
+    struct MultiArg {
+      int a, b, c;
+      MultiArg() = default;
+      MultiArg(int x, int y, int z) : a(x), b(y), c(z) {}
+      bool operator==(const MultiArg& other) const {
+        return a == other.a && b == other.b && c == other.c;
+      }
+    };
+    dq::array<MultiArg, 10> dq;
+    dq.emplace_back(1, 2, 3);
+    dq.emplace_front(4, 5, 6);
+    dq.emplace(dq.begin() + 1, 7, 8, 9);
+    assert(dq.size() == 3);
+    assert(dq.front() == MultiArg(4, 5, 6));
+    assert(dq[1] == MultiArg(7, 8, 9));
+    assert(dq.back() == MultiArg(1, 2, 3));
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Sort edge cases — empty, single element, all equal.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> empty;
+    empty.sort(empty.begin(), empty.end());
+    assert(empty.empty());
+
+    dq::array<int, 5> single = {42};
+    single.sort(single.begin(), single.end());
+    assert(single.size() == 1 && single[0] == 42);
+
+    dq::array<int, 5> equal = {5, 5, 5, 5};
+    equal.sort(equal.begin(), equal.end());
+    assert(std::all_of(equal.begin(), equal.end(), [](int x){ return x == 5; }));
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Stable sort preserves order for all-equal keys.
+  // ----------------------------------------------------------------
+  {
+    struct Track { int val, seq; };
+    dq::array<Track, 10> dq;
+    for (int i = 0; i < 5; ++i) dq.push_back({1, i});
+    dq.stable_sort(dq.begin(), dq.end(),
+      [](Track const& a, Track const& b){ return a.val < b.val; });
+    for (int i = 0; i < 5; ++i) assert(dq[i].seq == i);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: split() and csplit() on an empty container.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> empty;
+    auto segs = empty.split();
+    assert(segs[0][0] == segs[0][1]);
+    assert(segs[1][0] == segs[1][1]);
+
+    int sum = 0;
+    for (auto [i, j] : empty.csplit()) {
+      for (auto k = i; k != j; ++k) sum += *k;
+    }
+    assert(sum == 0);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: assign from an empty range.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 10> dq = {1, 2, 3};
+    std::vector<int> empty;
+    dq.assign(empty.begin(), empty.end());
+    assert(dq.empty());
+
+    dq.assign({});
+    assert(dq.empty());
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Insert at capacity boundary behavior.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 4> dq = {1, 2, 3};
+    dq.insert(dq.begin(), 0); // should succeed, size becomes 4
+    assert(dq.size() == 4);
+    assert(dq.full());
+    assert(dq[0] == 0);
+    assert(dq[3] == 3);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Erase of the last element returns end().
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> dq = {1, 2, 3};
+    auto it = dq.erase(dq.end() - 1);
+    assert(it == dq.end());
+    assert(dq.size() == 2);
+    assert(dq.back() == 2);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: find and find_if on empty containers.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> empty;
+    assert(dq::find(empty, 1) == empty.end());
+    assert(!dq::find(empty, 1));
+    assert(dq::find_if(empty, [](int){ return true; }) == empty.end());
+  }
+
+  // ----------------------------------------------------------------
+  // Test: erase_if returning zero on empty or non-matching ranges.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> empty;
+    assert(dq::erase_if(empty, [](int){ return true; }) == 0);
+
+    dq::array<int, 5> dq = {1, 3, 5};
+    assert(dq::erase_if(dq, [](int x){ return x % 2 == 0; }) == 0);
+    assert(dq.size() == 3);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Iterator operator-> for struct types.
+  // ----------------------------------------------------------------
+  {
+    struct Node { int value; };
+    dq::array<Node, 5> dq;
+    dq.push_back({10});
+    dq.push_back({20});
+    auto it = dq.begin();
+    assert(it->value == 10);
+    ++it;
+    assert(it->value == 20);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: first() / last() consistency after cyclic operations.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 4> dq;
+    dq.push_back(1); dq.push_back(2);
+    dq.push_back(3); dq.push_back(4);
+    dq.pop_front();
+    dq.push_back(5);
+    // Logical contents: [2,3,4,5]
+    assert(dq.first()[0] == dq[0]);
+    assert(dq.first()[1] == dq[1]);
+    assert(dq.first()[2] == dq[2]);
+    assert(dq.first()[3] == dq[3]);
+    assert(dq.first() - dq.last() == 1);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: pop_front(0) and pop_back(0) on an empty container.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> empty;
+    empty.pop_front(0);
+    empty.pop_back(0);
+    assert(empty.empty());
+  }
+
+  // ----------------------------------------------------------------
+  // Test: insert_range at begin() and end().
+  // ----------------------------------------------------------------
+  {
+    std::vector<int> src = {0, 9};
+    dq::array<int, 10> dq = {1, 2, 3};
+    auto it = dq.insert_range(dq.begin(), src);
+    assert(*it == 0);
+    assert(dq[0] == 0 && dq[1] == 9 && dq[2] == 1);
+
+    it = dq.insert_range(dq.end(), src);
+    assert(*it == 0);
+    assert(dq.back() == 9);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: append_range and prepend_range with empty ranges.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 10> dq = {1, 2, 3};
+    std::vector<int> empty;
+    dq.append_range(empty);
+    assert(dq.size() == 3);
+    dq.prepend_range(empty);
+    assert(dq.size() == 3);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Comparison operators with empty containers.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> empty1, empty2;
+    assert(empty1 == empty2);
+    assert(!(empty1 != empty2));
+    assert(!(empty1 < empty2));
+    assert(empty1 <= empty2);
+    assert(!(empty1 > empty2));
+    assert(empty1 >= empty2);
+
+    dq::array<int, 5> non_empty = {1};
+    assert(empty1 != non_empty);
+    assert(empty1 < non_empty);
+    assert(non_empty > empty1);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: push_back / push_front cyclic overwrite with string tracking.
+  // ----------------------------------------------------------------
+  {
+    dq::array<std::string, 3> dq;
+    dq.push_back("A");
+    dq.push_back("B");
+    dq.push_back("C");
+    dq.push_back("D"); // overwrites A
+    assert(dq.size() == 3);
+    assert(dq[0] == "B");
+    assert(dq[1] == "C");
+    assert(dq[2] == "D");
+
+    dq.push_front("E"); // overwrites B
+    assert(dq.size() == 3);
+    assert(dq[0] == "E");
+    assert(dq[1] == "C");
+    assert(dq[2] == "D");
+  }
+
+  // ----------------------------------------------------------------
+  // Test: std::distance with reverse iterators across wrap boundary.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> circ;
+    for (int v : {1, 2, 3, 4, 5}) circ.push_back(v);
+    circ.pop_front(); circ.push_back(6); // wrap
+    assert(std::distance(circ.rbegin(), circ.rend()) == 5);
+    assert(std::distance(circ.crbegin(), circ.crend()) == 5);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: resize(0) and regrowth.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    dq.resize(0);
+    assert(dq.empty());
+    dq.push_back(10);
+    dq.push_front(20);
+    assert(dq.size() == 2);
+    assert(dq.front() == 20);
+    assert(dq.back() == 10);
+  }
+
+  // ----------------------------------------------------------------
+  // Test: data() pointer is non-null for NEW allocator after move.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5, dq::NEW> a;
+    assert(a.data() != nullptr); // NEW should always have an allocation
+    dq::array<int, 5, dq::NEW> b(std::move(a));
+    assert(b.data() != nullptr);
+    assert(a.data() != nullptr); // moved-from still has an allocation
+  }
+
+  // ----------------------------------------------------------------
+  // Test: dq::copy with empty source.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 5> empty;
+    int buf[1] = {99};
+    dq::copy(empty, buf, 0);
+    assert(buf[0] == 99); // should not write anything
+  }
+
+  // ----------------------------------------------------------------
+  // Test: Full container insert behavior.
+  // ----------------------------------------------------------------
+  {
+    dq::array<int, 3> dq = {1, 2, 3};
+    assert(dq.full());
+    auto old_front = dq.front();
+    dq.insert(dq.begin() + 1, 99);
+    // After insert into full container, oldest element is dropped.
+    assert(dq.size() == 3);
+    assert(dq[0] == 99); // 99, 2, 3
   }
 }
 
 int main() {
-  // Run the test suite
-  test1();
-
+  test();
   std::cout << "All tests passed!" << std::endl;
-
   return 0;
 }
