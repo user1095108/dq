@@ -7,8 +7,6 @@
 namespace nicesort
 {
 
-enum { bsize0 = 16 };
-
 template <typename It>
 void insertion_sort(It const i, It const j, auto cmp)
 {
@@ -36,7 +34,7 @@ void merge(It& a, It& b, It& c, It& d, auto& cmp)
 }
 
 template <auto E = std::execution::unseq,
-  typename It,
+  std::size_t bsize0 = 16, typename It,
   class Cmp = std::less<typename std::iterator_traits<It>::value_type>>
 requires std::random_access_iterator<It>
 void sort(It i, It const e, Cmp&& cmp = Cmp())
@@ -54,7 +52,7 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
     do
     {
       { // advance j
-        auto const d(std::min(std::size_t(bsize0), sz));
+        auto const d(std::min(bsize0, sz));
         j += d; sz -= d;
       }
 
