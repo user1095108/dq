@@ -38,6 +38,7 @@ void merge(It& a, It& b, It& c, It& d, auto& cmp)
 template <auto E = std::execution::unseq,
   typename It,
   class Cmp = std::less<typename std::iterator_traits<It>::value_type>>
+requires std::random_access_iterator<It>
 void sort(It i, It const e, Cmp&& cmp = Cmp())
 {
   if (e == i) return;

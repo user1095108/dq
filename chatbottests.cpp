@@ -2544,11 +2544,10 @@ void test() {
   {
     dq::array<int, 3> dq = {1, 2, 3};
     assert(dq.full());
-    auto old_front = dq.front();
     dq.insert(dq.begin() + 1, 99);
-    // After insert into full container, oldest element is dropped.
+    // After insert into full container, front (oldest) element is dropped.
     assert(dq.size() == 3);
-    assert(dq[0] == 99); // 99, 2, 3
+    assert((dq == std::array{99, 2, 3}));
   }
 }
 
