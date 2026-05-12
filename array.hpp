@@ -771,7 +771,7 @@ constexpr auto count_if(auto& c, auto pred)
     for (; i < --j; ++i)
       cnt += pred(std::as_const(*i)) + pred(std::as_const(*j));
 
-    if (i == j) cnt += pred(std::as_const(*i));
+    cnt += (i == j) && pred(std::as_const(*i));
   }
 
   return cnt;
