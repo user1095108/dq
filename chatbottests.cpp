@@ -2199,15 +2199,10 @@ void test() {
     dq.push_back("C");
     dq.push_back("D"); // overwrites A
     assert(dq.size() == 3);
-    assert(dq[0] == "B");
-    assert(dq[1] == "C");
-    assert(dq[2] == "D");
-
+    assert((dq == std::array{"B", "C", "D"}));
     dq.push_front("E"); // overwrites B
     assert(dq.size() == 3);
-    assert(dq[0] == "E");
-    assert(dq[1] == "C");
-    assert(dq[2] == "D");
+    assert((dq == std::array{"E", "C", "D"}));
   }
 
   // Test: std::distance with reverse iterators across wrap boundary.
@@ -2422,8 +2417,7 @@ void test() {
     auto it = cdq.begin();
 
     assert((*it).first  == 1);
-    assert(it->second   == 10);
-    ++it;
+    assert(it++->second == 10);
     assert((*it).first  == 2);
     assert(it->second   == 20);
   }
