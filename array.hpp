@@ -4,6 +4,7 @@
 
 #include <cstdint> // PTRDIFF_MAX
 #include <algorithm> // std::move()
+#include <array> // std::array
 #include <compare> // std::three_way_comparable
 #include <execution> // std::execution
 #include <initializer_list> // std::initializer_list
