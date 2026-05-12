@@ -758,6 +758,49 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////
+constexpr auto count_if(auto& c, auto pred)
+  noexcept(noexcept(pred(*c.cbegin())))
+  requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
+{
+  typename std::remove_cvref_t<decltype(c)>::size_type cnt{};
+
+  for (auto [i, j]: c.split())
+  {
+    if (i == j) break;
+
+    for (; i < --j; ++i)
+      cnt += pred(std::as_const(*i)) + pred(std::as_const(*j));
+
+    if (i == j) cnt += pred(std::as_const(*i));
+  }
+
+  return cnt;
+}
+
+template <int = 0>
+constexpr auto count(auto& c, auto const& ...k)
+  noexcept(noexcept(((*c.cbegin() == k), ...)))
+  requires(!!sizeof...(k) &&
+    requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
+{
+  return count_if(
+      c,
+      [&k...](auto const& a) noexcept(noexcept(((a == k), ...)))
+      {
+        return ((a == k) || ...);
+      }
+    );
+}
+
+template <typename T>
+constexpr auto count(auto& c,
+  typename std::remove_cvref_t<decltype(c)>::value_type const k)
+  noexcept(noexcept(find<0>(c, k)))
+  requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
+{
+  return count<0>(c, k);
+}
+
 template <typename T, auto S, auto M, auto E>
 constexpr auto erase_if(array<T, S, M, E>& c, auto pred)
   noexcept(noexcept(c.erase(c.cbegin()), pred(*c.cbegin())))
@@ -817,13 +860,13 @@ constexpr auto find_if(auto& c, auto pred)
 }
 
 template <int = 0>
-constexpr auto find(auto&& c, auto const& ...k)
+constexpr auto find(auto& c, auto const& ...k)
   noexcept(noexcept(((*c.cbegin() == k), ...)))
   requires(!!sizeof...(k) &&
     requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   return find_if(
-      std::forward<decltype(c)>(c),
+      c,
       [&k...](auto const& a) noexcept(noexcept(((a == k), ...)))
       {
         return ((a == k) || ...);

@@ -397,6 +397,7 @@ void test() {
     assert(it && *it == 3);
     it = std::find(dq.begin(), dq.end(), 6);
     assert(it && *it == 6);
+    assert(3 == dq::count(dq, 1, 3, 10, 11));
   }
 
   // Test: Member swap.
@@ -1006,6 +1007,7 @@ void test() {
     dq::erase_if(d, [](int n){ return n % 2 == 0; });
     assert(std::none_of(d.begin(), d.end(), [](int n){ return n % 2 == 0; }));
     assert(!dq::find_if(d, [](int n){ return n % 2 == 0; }));
+    assert(!dq::count_if(d, [](int n){ return n % 2 == 0; }));
   }
 
   // Test: erase_if and erase helpers with expected results.
@@ -1758,14 +1760,15 @@ void test() {
     dq::array<int, 10> dq = {1, 3, 5, 7, 8, 9};
 
     auto it = dq::find_if(dq, [](int x){ return x % 2 == 0; });
-    assert(it != dq.end() && *it == 8);
+    assert(it && *it == 8);
 
     it = dq::find_if(dq, [](int x){ return x > 100; });
-    assert(it == dq.end());
+    assert(!it);
+    assert(!dq::count_if(dq, [](int x){ return x > 100; }));
 
     const auto& cdq = dq;
     auto cit = dq::find_if(cdq, [](int x){ return x == 5; });
-    assert(cit != cdq.end() && *cit == 5);
+    assert(cit && *cit == 5);
   }
 
   // Test: dq::find with multiple keys.
@@ -2102,6 +2105,7 @@ void test() {
     dq::array<int, 5> empty;
     assert(dq::find(empty, 1) == empty.end());
     assert(!dq::find(empty, 1));
+    assert(!dq::count(empty, 1));
     assert(dq::find_if(empty, [](int){ return true; }) == empty.end());
   }
 
