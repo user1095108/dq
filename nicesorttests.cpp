@@ -27,7 +27,7 @@ bool is_stable_sort()
   auto const cmp([](auto const& a, auto const& b) noexcept
     { return std::get<0>(a) < std::get<0>(b); });
 
-  nice::sort(c.begin(), c.end());
+  nicesort::sort(c.begin(), c.end());
 
   return std::ranges::is_sorted(c, cmp) &&
     (c.cend() == std::ranges::adjacent_find(std::as_const(c),
@@ -65,7 +65,7 @@ void test_run(std::string_view const& title, auto& a)
 
   //
   start = std::chrono::high_resolution_clock::now();
-  nice::sort(c.begin(), c.end());
+  nicesort::sort(c.begin(), c.end());
   end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> const d2(end - start);
@@ -78,12 +78,12 @@ void test_run(std::string_view const& title, auto& a)
   //
   std::cout << "std::sort time: " << d0.count() << " seconds" << std::endl;
   std::cout << "std::stable_sort time: " << d1.count() << " seconds" << std::endl;
-  std::cout << "nice::sort time: " << d2.count() << " seconds" << std::endl;
+  std::cout << "nicesort::sort time: " << d2.count() << " seconds" << std::endl;
 }
 
 int main()
 {
-  std::cout << "nice::sort is stable? " << is_stable_sort() << std::endl;
+  std::cout << "nicesort::sort is stable? " << is_stable_sort() << std::endl;
 
   std::vector<int> a;
 
