@@ -2564,6 +2564,212 @@ void test() {
     assert(*rit == 2);
     assert(std::distance(dq.rbegin(), dq.rend()) == 3);
   }
+
+  // std::bool support and heterogeneous lookup
+  {
+    dq::array<bool, 8> bools{true, false, true, false, true};
+    assert(bools.size() == 5);
+    assert(dq::count(bools, true) == 3);
+    assert(dq::count(bools, false) == 2);
+    auto it = dq::find(bools, true);
+    assert(it && *it == true);
+  }
+
+  // append() capacity clamping behavior
+  {
+    dq::array<int, 5> arr{1, 2, 3}; // size=3, space=2
+    int overflow_data[] = {4, 5, 6, 7, 8};
+    auto added = arr.append(overflow_data, 5);
+    assert(added == 2); // Only 2 slots available
+    assert(arr.size() == 5);
+    assert(arr.full());
+    assert((arr == std::array{1, 2, 3, 4, 5}));
+  }
+
+  // insert with dq::multi on a full container (circular overwrite per element)
+  {
+    dq::array<int, 4> full{1, 2, 3, 4};
+    assert(full.full());
+    // Inserting 2 elements into full drops 2 from front
+    full.insert(dq::multi, full.begin() + 1, 99, 88);
+    assert(full.size() == 4);
+    assert((full == std::array{88, 2, 3, 4}));
+  }
+
+  // resize() on a wrapped buffer (shrink & grow)
+  {
+    dq::array<int, 6> wrap;
+    for (int i = 0; i < 6; ++i) wrap.push_back(i);
+    wrap.pop_front(); wrap.push_back(6); // Wrapped state: [1,2,3,4,5,6]
+    
+    wrap.resize(3); // Shrink
+    assert(wrap.size() == 3);
+    assert((wrap == std::array{1, 2, 3}));
+    
+    wrap.resize(5, 99); // Grow with fill
+    assert(wrap.size() == 5);
+    assert(wrap[0] == 1);
+    assert(wrap[3] == 99);
+    assert(wrap[4] == 99);
+  }
+
+  // dq::erase_if on a fully wrapped buffer
+  {
+    dq::array<int, 8> wrap;
+    for (int i = 0; i < 8; ++i) wrap.push_back(i);
+    wrap.pop_front(); wrap.push_back(8); // [1,2,3,4,5,6,7,8] wrapped
+    auto removed = dq::erase_if(wrap, [](int x) { return x % 3 == 0; });
+    assert(removed == 2); // 3 and 6 removed
+    assert(wrap.size() == 6);
+    assert((wrap == std::array{1, 2, 4, 5, 7, 8}));
+  }
+
+  // split() / csplit() exhaustive segment validation
+  {
+    dq::array<int, 5> empty;
+    auto s1 = empty.split();
+    assert(s1[0][0] == s1[0][1] && s1[1][0] == s1[1][1]);
+
+    dq::array<int, 4> contiguous{1, 2, 3};
+    auto s2 = contiguous.split();
+    assert(s2[0][1] - s2[0][0] == 3);
+    assert(s2[1][0] == s2[1][1]);
+
+    dq::array<int, 4> wrapped;
+    wrapped.push_back(1); wrapped.push_back(2); wrapped.push_back(3); wrapped.push_back(4);
+    wrapped.pop_front(); wrapped.push_back(5); // Wrapped: [2,3,4,5]
+    auto s3 = wrapped.split();
+    assert((s3[0][1] - s3[0][0]) + (s3[1][1] - s3[1][0]) == 4);
+    // Verify reconstruction from split segments
+    int rebuilt[4]{};
+    int* p = rebuilt;
+    for (auto [beg, end] : wrapped.csplit())
+        while (beg != end) *p++ = *beg++;
+    assert(rebuilt[0] == 2 && rebuilt[1] == 3 && rebuilt[2] == 4 && rebuilt[3] == 5);
+  }
+
+  // dq::copy to raw buffer with size limit on wrapped state
+  {
+    dq::array<int, 6> src;
+    for (int i = 0; i < 6; ++i) src.push_back(i * 10); // [0, 10, 20, 30, 40, 50]
+    src.pop_front(); src.push_back(70); // [10, 20, 30, 40, 50, 70]
+    int dest[6]{};
+    dq::copy(src, dest, 6);
+    assert((src == std::array{10, 20, 30, 40, 50, 70}));
+    assert(dest == src);
+  }
+
+  // stable_sort correctness on heavily wrapped buffer
+  {
+    dq::array<int, 7> wrap;
+    for (int i = 0; i < 7; ++i) wrap.push_back(i);
+    wrap.pop_front(); wrap.pop_front(); wrap.push_back(7); wrap.push_back(8);
+    // State: [2,3,4,5,6,7,8] wrapped
+    wrap.stable_sort(wrap.begin(), wrap.end());
+    assert(std::is_sorted(wrap.begin(), wrap.end()));
+    assert(wrap.front() == 2 && wrap.back() == 8);
+  }
+
+  // Reverse iterator arithmetic and base conversion on wrapped state
+  {
+    dq::array<int, 5> wrap{1, 2, 3, 4, 5};
+    wrap.pop_front(); wrap.push_back(6); // [2,3,4,5,6] wrapped
+    auto r = wrap.rbegin();
+    assert(*r == 6);
+    r += 2;
+    assert(*r == 4);
+    r -= 1;
+    assert(*r == 5);
+    // Verify base() points to correct forward iterator
+    assert(std::distance(wrap.begin(), r.base() - 1) == 3);
+  }
+
+  // dq::count_if with complex predicate on wrapped buffer
+  {
+    dq::array<int, 6> wrap{10, 20, 30, 40, 50, 60};
+    wrap.pop_front(); wrap.push_back(70); // [20..70] wrapped
+    auto cnt = dq::count_if(wrap, [](int x) { return x >= 40; });
+    assert(cnt == 4); // 40, 50, 60, 70
+  }
+
+  // assign() with initializer list clearing existing wrapped state
+  {
+    dq::array<int, 10> wrap{1, 2, 3, 4, 5};
+    wrap.pop_front(); wrap.push_back(6); // wrapped
+    wrap.assign({100, 200});
+    assert(wrap.size() == 2);
+    assert(wrap[0] == 100 && wrap[1] == 200);
+    assert(!wrap.full());
+    wrap.append_range({300, 400});
+    assert((wrap == std::array{100, 200, 300, 400}));
+  }
+
+  // Operator <=> lexicographical comparison with different lengths
+  {
+    dq::array<int, 10> a{1, 2, 3};
+    dq::array<int, 10> b{1, 2, 3, 4};
+    assert((a <=> b) < 0);
+    assert((b <=> a) > 0);
+    assert((a <=> a) == 0);
+  }
+
+  // dq::from_range with filtered view
+  {
+    auto odds = std::views::iota(1, 10) | std::views::filter([](int x) { return x % 2 != 0; });
+    dq::array<int, 5> arr(dq::from_range, odds);
+    assert(arr.size() == 5);
+    assert((arr == std::array{1, 3, 5, 7, 9}));
+  }
+
+  // Swap between empty and full containers
+  {
+    dq::array<int, 4> full{1, 2, 3, 4};
+    dq::array<int, 4> empty;
+    full.swap(empty);
+    assert(full.empty() && empty.full());
+    assert((empty == std::array{1, 2, 3, 4}));
+  }
+
+  // dq::find with heterogeneous string_view lookup
+  {
+    dq::array<std::string, 5> strs{"apple", "banana", "cherry", "date", "elderberry"};
+    auto it = dq::find(strs, std::string_view("cherry"));
+    assert(it != strs.end() && *it == "cherry");
+    it = dq::find(strs, std::string_view("grape"));
+    assert(it == strs.end());
+  }
+
+  // insert_range returning correct iterator to first inserted element
+  {
+    std::vector<int> src{10, 20, 30};
+    dq::array<int, 10> dq{1, 2, 3};
+    auto it = dq.insert_range(dq.begin() + 1, src);
+    assert(*it == 10);
+    assert(dq[1] == 10 && dq[2] == 20 && dq[3] == 30);
+    assert(dq[4] == 2);
+  }
+
+  // Bulk pop with count exactly matching size
+  {
+    dq::array<int, 5> dq{1, 2, 3, 4, 5};
+    dq.pop_front(2);
+    dq.pop_back(3);
+    assert(dq.empty());
+    assert(dq.first() == dq.last());
+  }
+
+  // Emplace with multiple constructor arguments on wrapped buffer
+  {
+    struct Triplet { int a, b, c; Triplet() = default; Triplet(int x, int y, int z) : a(x), b(y), c(z) {} bool operator==(const Triplet&) const = default; };
+    dq::array<Triplet, 3> dq;
+    dq.emplace_back(1, 2, 3);
+    dq.emplace_front(4, 5, 6);
+    dq.emplace(dq.begin() + 1, 7, 8, 9); // Triggers wrap/overwrite if needed, but size=3 so it fits
+    assert(dq.size() == 3);
+    assert(dq[0] == Triplet(4, 5, 6));
+    assert(dq[1] == Triplet(7, 8, 9));
+    assert(dq[2] == Triplet(1, 2, 3));
+  }
 }
 
 int main() {
