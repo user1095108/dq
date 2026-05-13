@@ -1603,8 +1603,7 @@ void test() {
     dq::array<int, 5> dq = {10, 20, 30, 40, 50};
     int buf[5]{};
     dq::copy(dq, buf);
-    for (int i = 0; i < 5; ++i)
-      assert(buf[i] == dq[i]);
+    assert(dq == buf);
 
     int buf2[3]{};
     dq::copy(dq, buf2, 3);
