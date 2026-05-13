@@ -795,7 +795,7 @@ constexpr auto count(auto& c, auto const& ...k)
 template <typename T>
 constexpr auto count(auto& c,
   typename std::remove_cvref_t<decltype(c)>::value_type const k)
-  noexcept(noexcept(find<0>(c, k)))
+  noexcept(noexcept(count<0>(c, k)))
   requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   return count<0>(c, k);
