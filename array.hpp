@@ -408,30 +408,30 @@ public:
   }
 
   // emplacing is a bad idea in this container, avoid if possible
-  constexpr void emplace_back(auto&& ...a)
+  constexpr T& emplace_back(auto&& ...a)
     noexcept(noexcept(push_back(std::declval<T>())))
     requires(std::is_constructible_v<T, decltype(a)...>)
   {
-    push_back(T(std::forward<decltype(a)>(a)...));
+    push_back(T(std::forward<decltype(a)>(a)...)); return back();
   }
 
-  constexpr void emplace_back(value_type a)
+  constexpr T& emplace_back(value_type a)
     noexcept(noexcept(push_back(std::move(a))))
   {
-    push_back(std::move(a));
+    push_back(std::move(a)); return back();
   }
 
-  constexpr void emplace_front(auto&& ...a)
+  constexpr T& emplace_front(auto&& ...a)
     noexcept(noexcept(push_front(std::declval<T>())))
     requires(std::is_constructible_v<T, decltype(a)...>)
   {
-    push_front(T(std::forward<decltype(a)>(a)...));
+    push_front(T(std::forward<decltype(a)>(a)...)); return front();
   }
 
-  constexpr void emplace_front(value_type a)
+  constexpr T& emplace_front(value_type a)
     noexcept(noexcept(push_front(std::move(a))))
   {
-    push_front(std::move(a));
+    push_front(std::move(a)); return front();
   }
 
   constexpr auto emplace(const_iterator const i, auto&& ...a)
