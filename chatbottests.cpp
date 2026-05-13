@@ -9,7 +9,7 @@
 #include "array.hpp"
 
 void test() {
-  // Test: Basic construction, element access, and modifiers.
+  // Basic construction, element access, and modifiers.
   {
     // Construct a container using the multi-argument tag.
     dq::array<int, 20> dq(dq::multi, 1, 2, 3);
@@ -80,7 +80,7 @@ void test() {
     assert(sum == 13);
   }
 
-  // Test: Front, back, and middle insertion and erasure.
+  // Front, back, and middle insertion and erasure.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
@@ -115,7 +115,7 @@ void test() {
     assert(dq[3] == 4);
   }
 
-  // Test: Push, pop, resize, clear, and swap.
+  // Push, pop, resize, clear, and swap.
   {
     dq::array<int, 10> d;
 
@@ -151,7 +151,7 @@ void test() {
     assert(d.front() == 6 && d2.front() == 5);
   }
 
-  // Test: Mixed push_front and push_back with erasure and insertion.
+  // Mixed push_front and push_back with erasure and insertion.
   {
     dq::array<int, 20> dq;
 
@@ -214,7 +214,7 @@ void test() {
     assert(dq[10] == 5);
   }
 
-  // Test: Copy and move construction and assignment.
+  // Copy and move construction and assignment.
   {
     dq::array<int, 20> dq1; // Default construction.
     assert(dq1.empty());
@@ -240,7 +240,7 @@ void test() {
     assert(dq3.empty());
   }
 
-  // Test: Element access functions.
+  // Element access functions.
   {
     dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
@@ -253,7 +253,7 @@ void test() {
     assert(dq.size() == 5);
   }
 
-  // Test: Emplace operations with the NEW allocator tag.
+  // Emplace operations with the NEW allocator tag.
   {
     dq::array<int, 20, dq::NEW> dq;
 
@@ -281,7 +281,7 @@ void test() {
     assert(dq.front() == 6);
   }
 
-  // Test: Iterator and reverse iterator access.
+  // Iterator and reverse iterator access.
   {
     dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
@@ -297,7 +297,7 @@ void test() {
     assert(*(cdq.crend() - 1) == 1);
   }
 
-  // Test: Comparison operators.
+  // Comparison operators.
   {
     dq::array<int, 20> dq1 = {1, 2, 3, 4, 5};
     dq::array<int, 20> dq2 = {1, 2, 3, 4, 5};
@@ -311,7 +311,7 @@ void test() {
     assert(dq2 >= dq1);
   }
 
-  // Test: Single insert, emplace, range erase, and clear.
+  // Single insert, emplace, range erase, and clear.
   {
     dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
@@ -328,7 +328,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: Push and pop on an initially empty container.
+  // Push and pop on an initially empty container.
   {
     dq::array<int, 10> dq;
 
@@ -343,7 +343,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: Copy and move with non-trivial types.
+  // Copy and move with non-trivial types.
   {
     dq::array<std::string, 10> dq1; // Default construction.
     assert(dq1.empty());
@@ -369,7 +369,7 @@ void test() {
     assert(dq3.empty());
   }
 
-  // Test: Copy assignment operator.
+  // Copy assignment operator.
   {
     dq::array<int, 10> dq1 = {1, 2, 3};
     dq::array<int, 10> dq2 = {4, 5, 6, 7};
@@ -378,7 +378,7 @@ void test() {
     assert(dq1 == dq2);
   }
 
-  // Test: Subscript operator.
+  // Subscript operator.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
@@ -387,7 +387,7 @@ void test() {
     assert(dq[4] == 5);
   }
 
-  // Test: std::find integration and the dq::find helper.
+  // std::find integration and the dq::find helper.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -400,7 +400,7 @@ void test() {
     assert(3 == dq::count(dq, 1, 3, 10, 11));
   }
 
-  // Test: Member swap.
+  // Member swap.
   {
     dq::array<int, 10> dq1 = {1, 2, 3};
     dq::array<int, 10> dq2 = {4, 5, 6, 7};
@@ -410,7 +410,7 @@ void test() {
     assert((dq2 == std::array{1, 2, 3}));
   }
 
-  // Test: Comparison operators with empty containers.
+  // Comparison operators with empty containers.
   {
     dq::array<int, 10> dq1 = {1, 2, 3};
     dq::array<int, 10> dq2 = {1, 2, 3};
@@ -424,7 +424,7 @@ void test() {
     assert(dq2 >= dq1);
   }
 
-  // Test: Resize with and without a fill value.
+  // Resize with and without a fill value.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
@@ -436,7 +436,7 @@ void test() {
     assert(dq.size() == 5);
   }
 
-  // Test: Emplace at front and back.
+  // Emplace at front and back.
   {
     dq::array<int, 10> dq;
 
@@ -446,7 +446,7 @@ void test() {
     assert(dq.back() == 2);
   }
 
-  // Test: Single-element insert.
+  // Single-element insert.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
@@ -454,7 +454,7 @@ void test() {
     assert((dq == std::array{1, 2, 6, 3, 4, 5}));
   }
 
-  // Test: Single-element emplace.
+  // Single-element emplace.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
@@ -462,7 +462,7 @@ void test() {
     assert((dq == std::array{1, 2, 6, 3, 4, 5}));
   }
   
-  // Test: Range erase.
+  // Range erase.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
@@ -470,7 +470,7 @@ void test() {
     assert((dq == std::array{1, 2, 5}));
   }
 
-  // Test: Insert a sub-range from another container.
+  // Insert a sub-range from another container.
   {
     dq::array<int, 10> dq = {1, 2, 4, 5};
     dq::array<int, 10> to_insert = {3};
@@ -479,7 +479,7 @@ void test() {
     assert((dq == std::array{1, 2, 3, 4, 5}));
   }
 
-  // Test: Erase from front, middle, and back with iterators.
+  // Erase from front, middle, and back with iterators.
   {
     dq::array<int, 10> dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -503,7 +503,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: Single-element erase at various positions.
+  // Single-element erase at various positions.
   {
     dq::array dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // dq::array<int, 10>
     assert(10 == dq.capacity());
@@ -517,7 +517,7 @@ void test() {
     assert((dq == std::array{0, 1, 2, 4, 5, 6, 7, 8}));
   }
 
-  // Test: Swap verifies deep content exchange.
+  // Swap verifies deep content exchange.
   {
     dq::array<int, 10> d1, d2;
 
@@ -538,7 +538,7 @@ void test() {
     }
   }
 
-  // Test: Circular overwrite when capacity is reached.
+  // Circular overwrite when capacity is reached.
   {
     dq::array<int, 5> stack(dq::multi, 1, 2, 3, 4, 5);
 
@@ -557,7 +557,7 @@ void test() {
     assert(stack.empty());
   }
 
-  // Test: Pop front and back, then restore original size.
+  // Pop front and back, then restore original size.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
 
@@ -581,7 +581,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: Palindrome verification using front and back.
+  // Palindrome verification using front and back.
   {
     dq::array<char, 10> palindrome(dq::from_range, std::string_view("racecar"));
 
@@ -594,7 +594,7 @@ void test() {
     assert(1 == palindrome.size());
   }
 
-  // Test: Simulate a deck of cards.
+  // Simulate a deck of cards.
   {
     dq::array<std::string, 52> deck;
 
@@ -620,7 +620,7 @@ void test() {
     assert(topCard != bottomCard);
   }
 
-  // Test: Erase from the middle and verify neighbors.
+  // Erase from the middle and verify neighbors.
   {
     dq::array<int, 10> deque;
 
@@ -640,7 +640,7 @@ void test() {
     assert(deque[1] == 3);
   }
 
-  // Test: Simulate a queue with VIP front insertion.
+  // Simulate a queue with VIP front insertion.
   {
     dq::array<std::string, 10> line;
 
@@ -666,7 +666,7 @@ void test() {
     assert(line.empty());
   }
 
-  // Test: Front and back symmetry.
+  // Front and back symmetry.
   {
     dq::array<std::string, 10> magicBox;
 
@@ -685,7 +685,7 @@ void test() {
     assert(magicBox.empty());
   }
 
-  // Test: Iterator arithmetic with std::advance.
+  // Iterator arithmetic with std::advance.
   {
     dq::array<int, 10> d;
 
@@ -703,28 +703,28 @@ void test() {
     assert(*it == 4);
   }
 
-  // Test: std::remove_if integration.
+  // std::remove_if integration.
   {
     dq::array<int, 10> d = {1, 2, 3, 4, 5};
     d.erase(std::remove_if(d.begin(), d.end(), [](int n){ return n % 2 == 0; }), d.end());
     for (int n : d) assert(n % 2 != 0);
   }
 
-  // Test: dq::erase_if helper.
+  // dq::erase_if helper.
   {
     dq::array<int, 10> d = {1, 2, 3, 4, 5};
     assert(2 == dq::erase_if(d, [](int n){ return n % 2 == 0; }));
     for (int n : d) assert(n % 2 != 0);
   }
 
-  // Test: std::unique integration.
+  // std::unique integration.
   {
     dq::array<int, 20> dq{1, 2, 2, 3, 3, 3, 4, 4, 4, 4};
     dq.erase(std::unique(dq.begin(), dq.end()), dq.end());
     assert((dq == std::array{1, 2, 3, 4}));
   }
 
-  // Test: Insert a range from a different container type.
+  // Insert a range from a different container type.
   {
     dq::array<int, 10> d = {1, 2, 3, 4};
     dq::array<int, 10> l = {-1, -2, -3};
@@ -733,7 +733,7 @@ void test() {
     assert((d == std::array{1, 2, -1, -2, -3, 3, 4}));
   }
 
-  // Test: std::merge and std::reverse integration.
+  // std::merge and std::reverse integration.
   {
     dq::array<int, 10> dq1{1, 2, 3, 4, 5};
     dq::array<int, 10> dq2{6, 7, 8, 9, 10};
@@ -749,7 +749,7 @@ void test() {
     assert((mdq == std::array{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}));
   }
 
-  // Test: Shuffle, rotate, reverse, and sort round-trip.
+  // Shuffle, rotate, reverse, and sort round-trip.
   {
     dq::array<int, 10> originalDeque{1, 2, 3, 4, 5};
     auto deque{originalDeque};
@@ -766,7 +766,7 @@ void test() {
     assert(std::equal(deque.begin(), deque.end(), originalDeque.begin()));
   }
 
-  // Test: Fill constructor with count and value.
+  // Fill constructor with count and value.
   {
     dq::array<int, 10> a(5, 10);
 
@@ -775,7 +775,7 @@ void test() {
     for (const auto& e: a) assert(e == 10);
   }
 
-  // Test: Insert at beginning, middle, and end.
+  // Insert at beginning, middle, and end.
   {
     dq::array<int, 20> myDeque = {1, 2, 3, 4, 5};
 
@@ -802,7 +802,7 @@ void test() {
     assert(myDeque[4] == 10);
   }
 
-  // Test: Erase with move-only types.
+  // Erase with move-only types.
   {
     dq::array<std::unique_ptr<int>, 10> myDeque;
     for (int i = 0; i < 10; i++) {
@@ -818,7 +818,7 @@ void test() {
     assert(**it == 6);
   }
 
-  // Test: Erase single element and ranges.
+  // Erase single element and ranges.
   {
     dq::array<int, 10> deque = {1, 2, 3, 4, 5};
     deque.erase(deque.begin() + 2);
@@ -845,7 +845,7 @@ void test() {
     assert(deque.empty());
   }
 
-  // Test: Swap with various container states.
+  // Swap with various container states.
   {
     dq::array<int, 10, dq::NEW> deque1 = {1, 2, 3};
     dq::array<int, 10, dq::NEW> deque2 = {4, 5, 6};
@@ -872,7 +872,7 @@ void test() {
     assert((deque2 == std::array{1, 2, 3}));
   }
 
-  // Test: Insert initializer lists at various positions.
+  // Insert initializer lists at various positions.
   {
     dq::array<int, 20, dq::NEW> deque = {1, 2, 3, 4, 5};
     deque.insert(deque.begin() + 2, 6);
@@ -901,7 +901,7 @@ void test() {
     assert((deque == std::array{6, 7, 8, 9, 10, 11}));
   }
 
-  // Test: append_range, prepend_range, and insert_range.
+  // append_range, prepend_range, and insert_range.
   {
     dq::array<int, 30> arr{1, 2, 3};
 
@@ -919,7 +919,7 @@ void test() {
     assert((arr == std::array{4, 5, 6, 4, 5, 6, 1, 2, 3, 4, 5, 6}));
   }
 
-  // Test: Resize with explicit fill value.
+  // Resize with explicit fill value.
   {
     dq::array<int, 20> dq = {1, 2, 3, 4, 5};
 
@@ -938,7 +938,7 @@ void test() {
     assert(dq[4] == 100);
   }
 
-  // Test: General usage with iterators and modifiers.
+  // General usage with iterators and modifiers.
   {
     dq::array<int, 20> myDeque;
 
@@ -961,7 +961,7 @@ void test() {
     assert(myDeque.empty());
   }
 
-  // Test: Comprehensive functional test case.
+  // Comprehensive functional test case.
   {
     dq::array<int, 20> deque1 = {1, 2, 3};
     assert(deque1.size() == 3);
@@ -999,7 +999,7 @@ void test() {
     assert(!dq::find(deque1, 10));
   }
 
-  // Test: dq::erase and dq::erase_if with std::find validation.
+  // dq::erase and dq::erase_if with std::find validation.
   {
     dq::array<int, 10> d{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -1013,7 +1013,7 @@ void test() {
     assert(!dq::count_if(d, [](int n){ return n % 2 == 0; }));
   }
 
-  // Test: erase_if and erase helpers with expected results.
+  // erase_if and erase helpers with expected results.
   {
     dq::array<int, 10> d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     dq::erase_if(d, [](int i){ return i % 2 == 0; });
@@ -1026,7 +1026,7 @@ void test() {
     assert((d == std::array{1, 2, 3, 4, 6, 7, 8, 9, 10}));
   }
 
-  // Test: Range erase with various boundaries.
+  // Range erase with various boundaries.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -1070,7 +1070,7 @@ void test() {
     assert(dq.size() == 7);
   }
 
-  // Test: Range erase returning correct iterators.
+  // Range erase returning correct iterators.
   {
     dq::array<int, 10> dq{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -1096,13 +1096,13 @@ void test() {
     assert((dq == std::array{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
   }
 
-  // Test: Range construction from a C array.
+  // Range construction from a C array.
   {
     int const a[10]{};
     assert(std::ranges::equal(a, dq::array<int, 10>(a)));
   }
 
-  // Test: std::ranges algorithms integration.
+  // std::ranges algorithms integration.
   {
     dq::array<int, 20> dq = {3, 1, 4, 1, 5};
 
@@ -1114,7 +1114,7 @@ void test() {
     assert(std::ranges::count(dq, 1) == 2);
   }
 
-  // Test: Move-only types.
+  // Move-only types.
   {
     dq::array<std::unique_ptr<int>, 10> dq;
     dq.emplace_back(std::make_unique<int>(7));
@@ -1128,7 +1128,7 @@ void test() {
     assert(*dq.front() == 7);
   }
 
-  // Test: Capacity edge cases with circular overwrite.
+  // Capacity edge cases with circular overwrite.
   {
     dq::array<int, 4> dq{0, 1, 2, 3};
 
@@ -1147,14 +1147,14 @@ void test() {
     assert(dq.back()  == 42);
   }
 
-  // Test: Heterogeneous lookup with std::string_view.
+  // Heterogeneous lookup with std::string_view.
   {
     dq::array<std::string, 10> dq = {"apple", "banana", "pear"};
     assert(std::ranges::find(dq, std::string_view("banana")) != dq.end());
     assert(std::ranges::find(dq, std::string_view("grape")) == dq.end());
   }
 
-  // Test: Iterator stability after insert and erase.
+  // Iterator stability after insert and erase.
   {
     dq::array<int, 20> dq = {0,1,2,3,4,5};
     auto it = dq.begin() + 3;
@@ -1168,7 +1168,7 @@ void test() {
     assert(*it == 3);
   }
 
-  // Test: Randomized stress test.
+  // Randomized stress test.
   {
     constexpr int N = 1'000;
     dq::array<int, N> dq;
@@ -1188,7 +1188,7 @@ void test() {
     }
   }
 
-  // Test: Ranges projection with custom struct.
+  // Ranges projection with custom struct.
   {
     struct Point { int x, y; };
     dq::array<Point, 10> dq = {{5,6}, {1,2}, {3,4}};
@@ -1197,14 +1197,14 @@ void test() {
     assert(dq[0].y == 2 && dq[2].y == 6);
   }
 
-  // Test: Const iterators yield const references.
+  // Const iterators yield const references.
   {
     const dq::array<int, 5> dq = {10,20,30};
     static_assert(std::same_as<decltype(dq.begin()), dq::array<int,5>::const_iterator>);
     assert(std::accumulate(dq.begin(), dq.end(), 0) == 60);
   }
 
-  // Test: Resize with value initialization.
+  // Resize with value initialization.
   {
     dq::array<int, 10> dq = {1,2,3};
     dq.resize(6, 42);
@@ -1215,21 +1215,21 @@ void test() {
     assert(dq.size() == 2);
   }
 
-  // Test: Self-swap is a no-op.
+  // Self-swap is a no-op.
   {
     dq::array<int, 5> dq = {1,2,3};
     dq.swap(dq);
     assert(dq.size() == 3 && dq[0] == 1);
   }
 
-  // Test: Reverse iterator ranges.
+  // Reverse iterator ranges.
   {
     dq::array<int, 10> dq = {1,2,3,2,1};
     auto rfirst = dq.rbegin(), rlast = dq.rend();
     assert(std::ranges::count(rfirst, rlast, 2) == 2);
   }
 
-  // Test: erase_if with lambda capture.
+  // erase_if with lambda capture.
   {
     dq::array<int, 10> dq = {1,2,3,4,5,6};
     int threshold = 4;
@@ -1237,7 +1237,7 @@ void test() {
     assert((dq == std::array{1,2,3,4}));
   }
 
-  // Test: Single-producer single-consumer threading.
+  // Single-producer single-consumer threading.
   {
     dq::array<int, 10> buffer;
     std::atomic<bool> done{};
@@ -1268,7 +1268,7 @@ void test() {
     assert(consumed == 999*1000/2);
   }
 
-  // Test: Insert from a raw C array.
+  // Insert from a raw C array.
   {
     int raw[] = {9,8,7};
     dq::array<int, 10> dq = {1,2,3};
@@ -1276,7 +1276,7 @@ void test() {
     assert((dq == std::array{1,9,8,7,2,3}));
   }
 
-  // Test: assign with an initializer list.
+  // assign with an initializer list.
   {
     dq::array<int, 10> dq;
     dq.assign({10,20,30});
@@ -1284,7 +1284,7 @@ void test() {
     assert(dq.size() == 3);
   }
 
-  // Test: std::swap overload.
+  // std::swap overload.
   {
     dq::array<std::string, 5> a = {"a","b"};
     dq::array<std::string, 5> b = {"x","y","z"};
@@ -1293,7 +1293,7 @@ void test() {
     assert((b == std::initializer_list<std::string_view>{"a","b"}));
   }
 
-  // Test: std::inner_product integration.
+  // std::inner_product integration.
   {
     dq::array<int, 5> a = {1,2,3};
     dq::array<int, 5> b = {4,5,6};
@@ -1301,7 +1301,7 @@ void test() {
     assert(dot == 32);
   }
 
-  // Test: Exact reverse iteration.
+  // Exact reverse iteration.
   {
     dq::array<int, 6> dq = {0,1,2,3,4,5};
     std::vector<int> expected = {5,4,3,2,1,0};
@@ -1310,7 +1310,7 @@ void test() {
     assert(actual == expected);
   }
 
-  // Test: Lexicographical comparison via ranges.
+  // Lexicographical comparison via ranges.
   {
     dq::array<int, 20> dq = {1,2,3};
     std::vector<int> v = {1,2,3,4};
@@ -1320,7 +1320,7 @@ void test() {
     assert(!std::ranges::lexicographical_compare(dq, dq));
   }
 
-  // Test: Fill construction and subsequent modification.
+  // Fill construction and subsequent modification.
   {
     dq::array<int, 10> dq(7, 42);
     assert(dq.size() == 7);
@@ -1331,7 +1331,7 @@ void test() {
     assert(std::count(dq.begin(), dq.end(), 42) == 6);
   }
 
-  // Test: Front element tracking through cyclic overwrites.
+  // Front element tracking through cyclic overwrites.
   {
     dq::array<char, 4> dq;
     for (char c = 'a'; c <= 'z'; ++c)
@@ -1342,7 +1342,7 @@ void test() {
     }
   }
 
-  // Test: Shrink via resize.
+  // Shrink via resize.
   {
     dq::array<int, 100> dq(std::ranges::iota_view{0, 50});
     dq.resize(10);
@@ -1350,14 +1350,14 @@ void test() {
     assert(dq.front() == 0 && dq.back() == 9);
   }
 
-  // Test: Parallel unsequenced reduce.
+  // Parallel unsequenced reduce.
   {
     dq::array<int, 10> dq = {1,2,3,4,5};
     int sum = std::reduce(std::execution::unseq, dq.begin(), dq.end(), 0);
     assert(sum == 15);
   }
 
-  // Test: Rotational equivalence of push_front and pop_back.
+  // Rotational equivalence of push_front and pop_back.
   {
     dq::array<int, 8> a = {1,2,3,4,5,6};
     auto b = a;
@@ -1371,7 +1371,7 @@ void test() {
     assert(a == b);
   }
 
-  // Test: std::rotate and reverse rotate.
+  // std::rotate and reverse rotate.
   {
     dq::array<int, 10> dq = {1,2,3,4,5};
     std::rotate(dq.begin(), dq.begin()+2, dq.end());
@@ -1381,7 +1381,7 @@ void test() {
     assert((dq == std::array{1,2,3,4,5}));
   }
 
-  // Test: Non-trivial type with full capacity overwrites.
+  // Non-trivial type with full capacity overwrites.
   {
     dq::array<std::string, 5> dq;
     dq.push_back("hello");
@@ -1409,7 +1409,7 @@ void test() {
     assert(dq[4] == "e");
   }
 
-  // Test: Move-only type lifecycle.
+  // Move-only type lifecycle.
   {
     dq::array<std::unique_ptr<int>, 3> dq;
     dq.push_back(std::make_unique<int>(1));
@@ -1430,7 +1430,7 @@ void test() {
     assert(*dq[0] == 3);
   }
 
-  // Test: Self-assignment through a reference.
+  // Self-assignment through a reference.
   {
     dq::array<int, 5> dq = {1, 2, 3};
     auto& dq_ref = dq;
@@ -1439,7 +1439,7 @@ void test() {
     assert(dq[0] == 1);
   }
 
-  // Test: Self-swap with the NEW allocator.
+  // Self-swap with the NEW allocator.
   {
     dq::array<int, 5, dq::NEW> dq = {1, 2, 3};
     dq.swap(dq);
@@ -1447,7 +1447,7 @@ void test() {
     assert(dq[0] == 1);
   }
 
-  // Test: Range assignment from a vector.
+  // Range assignment from a vector.
   {
     std::vector<int> v = {10, 20, 30, 40};
     dq::array<int, 10> dq;
@@ -1457,7 +1457,7 @@ void test() {
     assert(dq[3] == 40);
   }
 
-  // Test: Destructor correctness via a counting type.
+  // Destructor correctness via a counting type.
   {
     static int count;
     struct Counter {
@@ -1484,7 +1484,7 @@ void test() {
     assert(count == 0);
   }
 
-  // Test: Stress test with mixed operations.
+  // Stress test with mixed operations.
   {
     dq::array<int, 100> dq;
     for (int i = 0; i < 10000; ++i) {
@@ -1499,7 +1499,7 @@ void test() {
     assert(dq.size() <= 100);
   }
 
-  // Test: Heterogeneous lookup and multi-key erase.
+  // Heterogeneous lookup and multi-key erase.
   {
     dq::array<std::string, 5> dq = {"apple", "banana", "cherry"};
     auto it = dq::find(dq, "banana");
@@ -1510,7 +1510,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: Iterator navigation with std::advance, next, and prev.
+  // Iterator navigation with std::advance, next, and prev.
   {
     dq::array<int, 20> dq = { 10, 20, 30, 40, 50, 60, 70 };
 
@@ -1546,7 +1546,7 @@ void test() {
     assert(*std::prev(dq.rend(), 3)   == 30);
   }
 
-  // Test: Static capacity and max_size accessors.
+  // Static capacity and max_size accessors.
   {
     dq::array<int, 7> dq = {1, 2, 3};
     static_assert(dq.capacity() == 7);
@@ -1556,7 +1556,7 @@ void test() {
     assert(!dq.full());
   }
 
-  // Test: Raw pointer accessors data(), first(), and last().
+  // Raw pointer accessors data(), first(), and last().
   {
     dq::array<int, 5> dq = {10, 20, 30};
     assert(dq.data() != nullptr);
@@ -1565,7 +1565,7 @@ void test() {
     assert(dq.last() - dq.first() == static_cast<std::ptrdiff_t>(dq.size()));
   }
 
-  // Test: Bulk pop_front and pop_back.
+  // Bulk pop_front and pop_back.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8};
     dq.pop_back(3);
@@ -1582,7 +1582,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: assign with count and value.
+  // assign with count and value.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
     dq.assign(4, 99);
@@ -1598,7 +1598,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: dq::copy to a raw buffer.
+  // dq::copy to a raw buffer.
   {
     dq::array<int, 5> dq = {10, 20, 30, 40, 50};
     int buf[5]{};
@@ -1611,7 +1611,7 @@ void test() {
     assert(buf2[0] == 10 && buf2[1] == 20 && buf2[2] == 30);
   }
 
-  // Test: append from a raw pointer region.
+  // append from a raw pointer region.
   {
     int src[] = {4, 5, 6};
     dq::array<int, 10> dq = {1, 2, 3};
@@ -1628,7 +1628,7 @@ void test() {
     assert(small.full());
   }
 
-  // Test: split() and csplit() on unwrapped and wrapped states.
+  // split() and csplit() on unwrapped and wrapped states.
   {
     dq::array<int, 6> dq = {1, 2, 3, 4};
     auto segs = dq.split();
@@ -1654,7 +1654,7 @@ void test() {
             rebuilt[2] == 4 && rebuilt[3] == 5));
   }
 
-  // Test: dq::copy on a wrapped buffer.
+  // dq::copy on a wrapped buffer.
   {
     dq::array<int, 4> circ;
     circ.push_back(10); circ.push_back(20);
@@ -1665,7 +1665,7 @@ void test() {
     assert(out[0]==20 && out[1]==30 && out[2]==40 && out[3]==50);
   }
 
-  // Test: Iterator explicit bool conversion.
+  // Iterator explicit bool conversion.
   {
     dq::array<int, 5> dq = {1, 2, 3};
     auto it  = dq.begin();
@@ -1684,7 +1684,7 @@ void test() {
     assert(!static_cast<bool>(cit));
   }
 
-  // Test: Variadic insert, push_back, and push_front.
+  // Variadic insert, push_back, and push_front.
   {
     dq::array<int, 20> dq = {1, 5};
     auto it = dq.insert(dq::multi, dq.cbegin() + 1, 2, 3, 4);
@@ -1702,7 +1702,7 @@ void test() {
     assert(dq3.size() == 3);
   }
 
-  // Test: Member sort() with custom comparators.
+  // Member sort() with custom comparators.
   {
     dq::array<int, 10> dq = {5, 3, 8, 1, 9, 2};
     dq.sort(dq.begin(), dq.end());
@@ -1718,7 +1718,7 @@ void test() {
     assert(dq2[5] == 2);
   }
 
-  // Test: Member sort() on a custom struct.
+  // Member sort() on a custom struct.
   {
     struct Item { int key, val; };
     dq::array<Item, 10> dq;
@@ -1732,7 +1732,7 @@ void test() {
            dq[2].key == 3 && dq[3].key == 4);
   }
 
-  // Test: Range construction from views.
+  // Range construction from views.
   {
     auto doubled = std::views::iota(1, 6)
                  | std::views::transform([](int x){ return x * 2; });
@@ -1750,7 +1750,7 @@ void test() {
     assert((dq3 == std::array{0, 1, 2, 3, 4}));
   }
 
-  // Test: Assignment from a range.
+  // Assignment from a range.
   {
     dq::array<int, 10> dq = {99, 99, 99};
     dq = std::views::iota(1, 6);
@@ -1758,7 +1758,7 @@ void test() {
     assert((dq == std::array{1, 2, 3, 4, 5}));
   }
 
-  // Test: dq::find_if with various predicates.
+  // dq::find_if with various predicates.
   {
     dq::array<int, 10> dq = {1, 3, 5, 7, 8, 9};
 
@@ -1774,7 +1774,7 @@ void test() {
     assert(cit && *cit == 5);
   }
 
-  // Test: dq::find with multiple keys.
+  // dq::find with multiple keys.
   {
     dq::array<int, 10> dq = {10, 20, 30, 40, 50};
 
@@ -1786,7 +1786,7 @@ void test() {
     assert(!static_cast<bool>(it));
   }
 
-  // Test: Circular overwrite and dq::copy consistency.
+  // Circular overwrite and dq::copy consistency.
   {
     dq::array<int, 3> ring;
     ring.push_back(1); ring.push_back(2); ring.push_back(3);
@@ -1801,7 +1801,7 @@ void test() {
     assert(out[0]==3 && out[1]==4 && out[2]==5);
   }
 
-  // Test: insert(pos, count, value).
+  // insert(pos, count, value).
   {
     dq::array<int, 20> dq = {1, 2, 5};
     auto it = dq.insert(dq.begin() + 2, 3, 99);
@@ -1815,7 +1815,7 @@ void test() {
     (void)it2;
   }
 
-  // Test: Iterator distance across a wrap boundary.
+  // Iterator distance across a wrap boundary.
   {
     dq::array<int, 5> circ;
     circ.push_back(1); circ.push_back(2); circ.push_back(3);
@@ -1832,7 +1832,7 @@ void test() {
     assert(e - mid == 3);
   }
 
-  // Test: Reverse iteration on a wrapped buffer.
+  // Reverse iteration on a wrapped buffer.
   {
     dq::array<int, 4> circ = {1, 2, 3, 4};
     circ.pop_front(); circ.push_back(5);
@@ -1843,14 +1843,14 @@ void test() {
     assert(fwd == rev);
   }
 
-  // Test: Self-range assign is a no-op.
+  // Self-range assign is a no-op.
   {
     dq::array<int, 5> dq = {1, 2, 3};
     dq.assign_range(dq);
     assert(dq.size() == 3 && dq[0] == 1 && dq[2] == 3);
   }
 
-  // Test: Static capacity is compile-time constant.
+  // Static capacity is compile-time constant.
   {
     using A = dq::array<double, 16>;
     static_assert(A::capacity() == 16);
@@ -1859,7 +1859,7 @@ void test() {
     assert(!dq.full());
   }
 
-  // Test: stable_sort() preserves relative order.
+  // stable_sort() preserves relative order.
   {
     struct Item { int key, idx; };
     dq::array<Item, 10> dq;
@@ -1876,7 +1876,7 @@ void test() {
     assert(dq[2].idx == 0 && dq[3].idx == 2);
   }
 
-  // Test: stable_sort() on a wrapped buffer.
+  // stable_sort() on a wrapped buffer.
   {
     dq::array<int, 6> circ;
     for (int v : {9, 3, 7, 1, 5, 4}) circ.push_back(v);
@@ -1887,14 +1887,14 @@ void test() {
     assert((circ == std::array{1, 2, 4, 5, 7, 8}));
   }
 
-  // Test: stable_sort() with descending comparator.
+  // stable_sort() with descending comparator.
   {
     dq::array<int, 8> dq = {3, 1, 4, 1, 5, 9, 2, 6};
     dq.stable_sort(dq.begin(), dq.end(), std::greater<int>{});
     assert(std::is_sorted(dq.begin(), dq.end(), std::greater<int>{}));
   }
 
-  // Test: Zero-count bulk pop is a no-op.
+  // Zero-count bulk pop is a no-op.
   {
     dq::array<int, 6> dq = {1, 2, 3};
     dq.pop_front(0);
@@ -1902,7 +1902,7 @@ void test() {
     assert(dq.size() == 3 && dq[0] == 1 && dq[2] == 3);
   }
 
-  // Test: NEW allocator move constructor transfers ownership.
+  // NEW allocator move constructor transfers ownership.
   {
     dq::array<int, 8, dq::NEW> a = {10, 20, 30};
     auto* raw = a.data();
@@ -1914,7 +1914,7 @@ void test() {
     assert(a.data() != raw);
   }
 
-  // Test: NEW allocator move assignment swaps ownership.
+  // NEW allocator move assignment swaps ownership.
   {
     dq::array<int, 8, dq::NEW> a = {1, 2, 3};
     dq::array<int, 8, dq::NEW> b = {4, 5, 6, 7};
@@ -1928,7 +1928,7 @@ void test() {
     assert(b.size() == 3 && b[0] == 1);
   }
 
-  // Test: erase_if returns the number of removed elements.
+  // erase_if returns the number of removed elements.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     auto n = dq::erase_if(dq, [](int x){ return x % 3 == 0; });
@@ -1937,7 +1937,7 @@ void test() {
     for (int x : dq) assert(x % 3 != 0);
   }
 
-  // Test: erase_if on a wrapped buffer.
+  // erase_if on a wrapped buffer.
   {
     dq::array<int, 6> circ;
     for (int v : {1, 2, 3, 4, 5, 6}) circ.push_back(v);
@@ -1949,7 +1949,7 @@ void test() {
     for (int x : circ) assert(x % 2 != 0);
   }
 
-  // Test: insert_range returns iterator to first inserted element.
+  // insert_range returns iterator to first inserted element.
   {
     std::vector<int> src = {10, 20, 30};
     dq::array<int, 10> dq = {1, 2, 3};
@@ -1958,14 +1958,14 @@ void test() {
     assert((dq == std::array{1, 10, 20, 30, 2, 3}));
   }
 
-  // Test: first() pointer arithmetic matches operator[].
+  // first() pointer arithmetic matches operator[].
   {
     dq::array<int, 8> dq = {5, 10, 15, 20};
     for (std::size_t i = 0; i < dq.size(); ++i)
       assert(dq.first()[i] == dq[i]);
   }
 
-  // Test: Constexpr size and capacity queries.
+  // Constexpr size and capacity queries.
   {
     using A = dq::array<int, 5>;
     static_assert(A::capacity() == 5);
@@ -1976,7 +1976,7 @@ void test() {
     assert(d[0] == 10 && d[1] == 99 && d[2] == 30);
   }
 
-  // Test: sort() on a wrapped buffer.
+  // sort() on a wrapped buffer.
   {
     dq::array<int, 6> circ;
     for (int v : {5, 3, 1, 4, 2, 6}) circ.push_back(v);
@@ -1986,7 +1986,7 @@ void test() {
     assert(std::is_sorted(circ.begin(), circ.end()));
   }
 
-  // Test: std::partition via random-access iterator.
+  // std::partition via random-access iterator.
   {
     dq::array<int, 10> dq = {5, 2, 8, 1, 9, 3, 7, 4, 6};
     auto mid = std::partition(dq.begin(), dq.end(), [](int x){ return x < 5; });
@@ -1994,7 +1994,7 @@ void test() {
     assert(std::all_of(mid, dq.end(), [](int x){ return x >= 5; }));
   }
 
-  // Test: std::nth_element via random-access iterator.
+  // std::nth_element via random-access iterator.
   {
     dq::array<int, 8> dq = {7, 2, 5, 4, 1, 8, 3, 6};
     auto mid = dq.begin() + 3;
@@ -2004,7 +2004,7 @@ void test() {
     assert(std::all_of(mid + 1, dq.end(), [](int x){ return x >= 4; }));
   }
 
-  // Test: assign(count, value) overload.
+  // assign(count, value) overload.
   {
     dq::array<int, 10> dq = {1, 2, 3};
     dq.assign(5, 7);
@@ -2014,7 +2014,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: Emplace with multiple constructor arguments.
+  // Emplace with multiple constructor arguments.
   {
     struct MultiArg {
       int a, b, c;
@@ -2034,7 +2034,7 @@ void test() {
     assert(dq.back() == MultiArg(1, 2, 3));
   }
 
-  // Test: Sort edge cases — empty, single element, all equal.
+  // Sort edge cases — empty, single element, all equal.
   {
     dq::array<int, 5> empty;
     empty.sort(empty.begin(), empty.end());
@@ -2049,7 +2049,7 @@ void test() {
     assert(std::all_of(equal.begin(), equal.end(), [](int x){ return x == 5; }));
   }
 
-  // Test: Stable sort preserves order for all-equal keys.
+  // Stable sort preserves order for all-equal keys.
   {
     struct Track { int val, seq; };
     dq::array<Track, 10> dq;
@@ -2059,7 +2059,7 @@ void test() {
     for (int i = 0; i < 5; ++i) assert(dq[i].seq == i);
   }
 
-  // Test: split() and csplit() on an empty container.
+  // split() and csplit() on an empty container.
   {
     dq::array<int, 5> empty;
     auto segs = empty.split();
@@ -2073,7 +2073,7 @@ void test() {
     assert(sum == 0);
   }
 
-  // Test: assign from an empty range.
+  // assign from an empty range.
   {
     dq::array<int, 10> dq = {1, 2, 3};
     std::vector<int> empty;
@@ -2084,7 +2084,7 @@ void test() {
     assert(dq.empty());
   }
 
-  // Test: Insert at capacity boundary behavior.
+  // Insert at capacity boundary behavior.
   {
     dq::array<int, 4> dq = {1, 2, 3};
     dq.insert(dq.begin(), 0); // should succeed, size becomes 4
@@ -2094,7 +2094,7 @@ void test() {
     assert(dq[3] == 3);
   }
 
-  // Test: Erase of the last element returns end().
+  // Erase of the last element returns end().
   {
     dq::array<int, 5> dq = {1, 2, 3};
     auto it = dq.erase(dq.end() - 1);
@@ -2103,7 +2103,7 @@ void test() {
     assert(dq.back() == 2);
   }
 
-  // Test: find and find_if on empty containers.
+  // find and find_if on empty containers.
   {
     dq::array<int, 5> empty;
     assert(dq::find(empty, 1) == empty.end());
@@ -2112,7 +2112,7 @@ void test() {
     assert(dq::find_if(empty, [](int){ return true; }) == empty.end());
   }
 
-  // Test: erase_if returning zero on empty or non-matching ranges.
+  // erase_if returning zero on empty or non-matching ranges.
   {
     dq::array<int, 5> empty;
     assert(dq::erase_if(empty, [](int){ return true; }) == 0);
@@ -2122,7 +2122,7 @@ void test() {
     assert(dq.size() == 3);
   }
 
-  // Test: Iterator operator-> for struct types.
+  // Iterator operator-> for struct types.
   {
     struct Node { int value; };
     dq::array<Node, 5> dq;
@@ -2134,7 +2134,7 @@ void test() {
     assert(it->value == 20);
   }
 
-  // Test: first() / last() consistency after cyclic operations.
+  // first() / last() consistency after cyclic operations.
   {
     dq::array<int, 4> dq;
     dq.push_back(1); dq.push_back(2);
@@ -2147,7 +2147,7 @@ void test() {
     assert(dq.full());
   }
 
-  // Test: pop_front(0) and pop_back(0) on an empty container.
+  // pop_front(0) and pop_back(0) on an empty container.
   {
     dq::array<int, 5> empty;
     empty.pop_front(0);
@@ -2155,7 +2155,7 @@ void test() {
     assert(empty.empty());
   }
 
-  // Test: insert_range at begin() and end().
+  // insert_range at begin() and end().
   {
     std::vector<int> src = {0, 9};
     dq::array<int, 10> dq = {1, 2, 3};
@@ -2168,7 +2168,7 @@ void test() {
     assert(dq.back() == 9);
   }
 
-  // Test: append_range and prepend_range with empty ranges.
+  // append_range and prepend_range with empty ranges.
   {
     dq::array<int, 10> dq = {1, 2, 3};
     std::vector<int> empty;
@@ -2178,7 +2178,7 @@ void test() {
     assert(dq.size() == 3);
   }
 
-  // Test: Comparison operators with empty containers.
+  // Comparison operators with empty containers.
   {
     dq::array<int, 5> empty1, empty2;
     assert(empty1 == empty2);
@@ -2194,7 +2194,7 @@ void test() {
     assert(non_empty > empty1);
   }
 
-  // Test: push_back / push_front cyclic overwrite with string tracking.
+  // push_back / push_front cyclic overwrite with string tracking.
   {
     dq::array<std::string, 3> dq;
     dq.push_back("A");
@@ -2208,7 +2208,7 @@ void test() {
     assert((dq == std::array{"E", "C", "D"}));
   }
 
-  // Test: std::distance with reverse iterators across wrap boundary.
+  // std::distance with reverse iterators across wrap boundary.
   {
     dq::array<int, 5> circ;
     for (int v : {1, 2, 3, 4, 5}) circ.push_back(v);
@@ -2217,7 +2217,7 @@ void test() {
     assert(std::distance(circ.crbegin(), circ.crend()) == 5);
   }
 
-  // Test: resize(0) and regrowth.
+  // resize(0) and regrowth.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
     dq.resize(0);
@@ -2229,7 +2229,7 @@ void test() {
     assert(dq.back() == 10);
   }
 
-  // Test: data() pointer is non-null for NEW allocator after move.
+  // data() pointer is non-null for NEW allocator after move.
   {
     dq::array<int, 5, dq::NEW> a;
     assert(a.data() != nullptr); // NEW should always have an allocation
@@ -2238,7 +2238,7 @@ void test() {
     assert(a.data() != nullptr); // moved-from still has an allocation
   }
 
-  // Test: dq::copy with empty source.
+  // dq::copy with empty source.
   {
     dq::array<int, 5> empty;
     int buf[1] = {99};
@@ -2246,7 +2246,7 @@ void test() {
     assert(buf[0] == 99); // should not write anything
   }
 
-  // Test: Full container insert behavior.
+  // Full container insert behavior.
   {
     dq::array<int, 3> dq = {1, 2, 3};
     assert(dq.full());
@@ -2256,7 +2256,7 @@ void test() {
     assert((dq == std::array{99, 2, 3}));
   }
 
-  // Test: Post-increment returns a copy of the pre-advance iterator.
+  // Post-increment returns a copy of the pre-advance iterator.
   {
     dq::array<int, 5> dq = {10, 20, 30};
     auto it = dq.begin();
@@ -2270,7 +2270,7 @@ void test() {
     assert(*it   == 10);          // it has retreated
   }
 
-  // Test: Iterator operator[] random access.
+  // Iterator operator[] random access.
   {
     dq::array<int, 8> dq = {0, 1, 2, 3, 4, 5, 6, 7};
     auto it = dq.begin();
@@ -2292,7 +2292,7 @@ void test() {
     assert(cit[3] == 5);
   }
 
-  // Test: Iterator three-way comparison operator<=>.
+  // Iterator three-way comparison operator<=>.
   {
     dq::array<int, 6> dq = {1, 2, 3, 4, 5};
     auto a = dq.begin();
@@ -2318,7 +2318,7 @@ void test() {
     assert((ci <=> ci) == 0);
   }
 
-  // Test: Non-member n + iterator operator.
+  // Non-member n + iterator operator.
   {
     dq::array<int, 6> dq = {0, 1, 2, 3, 4};
     auto it = dq.begin();
@@ -2329,7 +2329,7 @@ void test() {
     assert((2 + it) == (it + 2));
   }
 
-  // Test: Iterator operator+= and operator-=.
+  // Iterator operator+= and operator-=.
   {
     dq::array<int, 8> dq = {10, 20, 30, 40, 50};
     auto it = dq.begin();
@@ -2350,7 +2350,7 @@ void test() {
     assert(*it == 50);
   }
 
-  // Test: Iterator difference operator-(iterator).
+  // Iterator difference operator-(iterator).
   {
     dq::array<int, 6> dq = {1, 2, 3, 4, 5};
     auto b = dq.begin();
@@ -2377,7 +2377,7 @@ void test() {
     assert((cb + 1) - cb == 1);
   }
 
-  // Test: Implicit iterator to const_iterator conversion.
+  // Implicit iterator to const_iterator conversion.
   {
     dq::array<int, 5> dq = {1, 2, 3};
     using iter_t       = decltype(dq)::iterator;
@@ -2394,7 +2394,7 @@ void test() {
     assert(*it  == 2);               // original iterator unchanged
   }
 
-  // Test: Const container yields const_iterator from begin()/end().
+  // Const container yields const_iterator from begin()/end().
   {
     const dq::array<int, 5> cdq = {5, 10, 15};
     static_assert(std::same_as<decltype(cdq.begin()),
@@ -2408,7 +2408,7 @@ void test() {
     assert(sum == 30);
   }
 
-  // Test: Iterator operator* and operator-> on const_iterator.
+  // Iterator operator* and operator-> on const_iterator.
   {
     struct Pair { int first, second; };
     dq::array<Pair, 4> dq;
@@ -2425,7 +2425,7 @@ void test() {
     assert(it->second   == 20);
   }
 
-  // Test: Iterator bool conversion on a wrapped buffer.
+  // Iterator bool conversion on a wrapped buffer.
   {
     dq::array<int, 3> circ;
     circ.push_back(1); circ.push_back(2); circ.push_back(3);
@@ -2438,7 +2438,132 @@ void test() {
     assert(count == 3);
 
     // end() iterator must evaluate to false.
-    assert(!static_cast<bool>(circ.end()));
+    assert(!circ.end());
+  }
+
+  // Basic Construction and Access
+  {
+    dq::array<int, 20> dq{1, 2, 3};
+    assert(dq.size() == 3);
+    assert(dq[0] == 1 && dq[2] == 3);
+
+    dq[1] = 42;
+    dq.pop_back();
+    assert(dq.size() == 2);
+
+    dq.clear();
+    assert(dq.empty());
+
+    dq.push_back(4);
+    dq.insert(dq.begin() + 1, 5);
+    assert(dq.size() == 2 && dq[1] == 5);
+  }
+
+  // Circular Logic & Wrap-around ---
+  {
+    dq::array<int, 5> dq = {1, 2, 3, 4, 5};
+    assert(dq.full());
+
+    // Trigger wrap-around by popping front and pushing back
+    dq.pop_front(); // {2, 3, 4, 5}
+    dq.push_back(6);  // {2, 3, 4, 5, 6}
+    assert(dq.front() == 2 && dq.back() == 6);
+
+    // Verify split() - since it wrapped, it should have two segments
+    auto segments = dq.split();
+    assert(segments[0][0] != nullptr);
+    // Note: Depending on internal pointer state, it might or might not be split
+    // But we can verify the sum of elements through split segments
+    int sum = 0;
+    for (auto const seg : segments) {
+      if (seg[0] == seg[1]) break;
+      sum = std::accumulate(seg[0], seg[1], sum);
+    }
+    assert(sum == 20); // 2+3+4+5+6
+  }
+
+  // Sorting Across Wrap-around ---
+  {
+    dq::array<int, 6> dq;
+    dq.push_back(10); // Start somewhere in the middle
+    dq.pop_front();
+
+    // Fill so it wraps: [empty, empty, 5, 4, 3, 2] -> [1, empty, 5, 4, 3, 2]
+    dq.push_back(5, 4, 3, 2, 1);
+    assert(!dq.full());
+
+    // Member sort handles the wrap-around internally
+    dq.sort(dq.begin(), dq.end());
+    assert(std::is_sorted(dq.begin(), dq.end()));
+    assert(dq.front() == 1 && dq.back() == 5);
+  }
+
+  // Append from Memory Region
+  {
+    dq::array<int, 10> dq = {1, 2, 3};
+    int raw_data[] = {4, 5, 6};
+    dq.append(raw_data, 3);
+    assert(dq.size() == 6);
+    assert(dq.back() == 6);
+  }
+
+  // Multi-argument Helpers (dq::find / dq::count)
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 1, 2, 3, 4};
+    // Count occurrences of 1 OR 3
+    assert(dq::count(dq, 1, 3) == 4);
+
+    // Find first occurrence of 4 or 5
+    auto it = dq::find(dq, 4, 5);
+    assert(it != dq.end() && *it == 4);
+  }
+
+  // Non-Trivial Types & Move Semantics
+  {
+    dq::array<std::unique_ptr<int>, 5> dq;
+    dq.push_back(std::make_unique<int>(10));
+    dq.push_back(std::make_unique<int>(20));
+
+    auto p = std::move(dq.front());
+    assert(*p == 10);
+    dq.pop_front();
+    assert(dq.size() == 1);
+    assert(*dq.front() == 20);
+  }
+
+  // Comparison Operators
+  {
+    dq::array<int, 5> dq1 = {1, 2, 3};
+    dq::array<int, 10> dq2 = {1, 2, 3}; // Different capacity
+
+    // Comparison works via ranges/iterators
+    assert(dq1 == dq2);
+    dq2.push_back(4);
+    assert(dq1 < dq2);
+  }
+
+  // Range Insertion & Erase_if
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5};
+    std::vector<int> v = {10, 11};
+    dq.insert(dq.begin() + 2, v.begin(), v.end());
+    // Result: {1, 2, 10, 11, 3, 4, 5}
+    assert(dq[2] == 10 && dq[4] == 3);
+
+    dq::erase_if(dq, [](int x) { return x % 2 == 0; });
+    // Result: {1, 11, 3, 5}
+    assert(dq.size() == 4);
+    for(int n : dq) assert(n % 2 != 0);
+  }
+
+  // Reverse Iterators
+  {
+    dq::array<int, 5> dq = {1, 2, 3};
+    auto rit = dq.rbegin();
+    assert(*rit == 3);
+    ++rit;
+    assert(*rit == 2);
+    assert(std::distance(dq.rbegin(), dq.rend()) == 3);
   }
 }
 

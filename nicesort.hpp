@@ -1,3 +1,7 @@
+#ifndef NICESORT_HPP
+# define NICESORT_HPP
+# pragma once
+
 #include <climits>
 #include <algorithm>
 #include <bit>
@@ -87,3 +91,5 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 }
 
 }
+
+#endif // NICESORT_HPP
