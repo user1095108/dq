@@ -505,10 +505,13 @@ void test() {
 
   // Test: Single-element erase at various positions.
   {
-    dq::array<int, 10> dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    dq::array dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // dq::array<int, 10>
+    assert(10 == dq.capacity());
+    assert(10 == dq.size());
+    assert(dq.full());
 
     dq.erase(dq.begin() + 3);
-    assert((dq == std::array{0, 1, 2, 4, 5, 6, 7, 8, 9}));
+    assert((dq == dq::array{0, 1, 2, 4, 5, 6, 7, 8, 9}));
 
     dq.erase(dq.end() - 1);
     assert((dq == std::array{0, 1, 2, 4, 5, 6, 7, 8}));

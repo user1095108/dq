@@ -948,6 +948,9 @@ constexpr void swap(array<T, S, M, E>& l, decltype(l) r) noexcept
   l.swap(r);
 }
 
+template <class T, class ...U>
+array(T, U...) -> array<T, 1 + sizeof...(U)>;
+
 }
 
 #endif // DQ_ARRAY_HPP
