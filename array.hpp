@@ -193,18 +193,18 @@ public:
   }
 
   constexpr explicit array(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(append_range(std::forward<decltype(rg)>(rg))))
+    noexcept(noexcept(assign_range(std::forward<decltype(rg)>(rg))))
     requires(!std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>):
     array()
   {
-    append_range(std::forward<decltype(rg)>(rg));
+    assign_range(std::forward<decltype(rg)>(rg));
   }
 
   constexpr array(from_range_t, std::ranges::input_range auto&& rg)
-    noexcept(noexcept(append_range(std::forward<decltype(rg)>(rg)))):
+    noexcept(noexcept(assign_range(std::forward<decltype(rg)>(rg)))):
     array()
   {
-    append_range(std::forward<decltype(rg)>(rg));
+    assign_range(std::forward<decltype(rg)>(rg));
   }
 
   ~array() requires(NEW != M) = default;
@@ -376,18 +376,35 @@ public:
     assign(l.begin(), l.end());
   }
 
-  constexpr void assign_range(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(assign(std::ranges::begin(rg), std::ranges::end(rg))))
+  void assign_range(std::ranges::input_range auto&& rg)
+    noexcept(noexcept(
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+        assign(std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg)))
+    ))
     requires(!std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>)
   {
-    assign(std::ranges::begin(rg), std::ranges::end(rg));
+    std::is_lvalue_reference_v<decltype(rg)> ?
+      assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+      assign(std::make_move_iterator(std::ranges::begin(rg)),
+        std::make_move_iterator(std::ranges::end(rg)));
   }
 
-  constexpr void assign_range(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(assign(std::ranges::begin(rg), std::ranges::end(rg))))
+  void assign_range(std::ranges::input_range auto&& rg)
+    noexcept(noexcept(
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+        assign(std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg)))
+    ))
     requires(std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>)
   {
-    if (this != &rg) assign(std::ranges::begin(rg), std::ranges::end(rg));
+    if (this != &rg)
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+        assign(std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg)));
   }
 
   //
