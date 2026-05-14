@@ -193,7 +193,7 @@ public:
   }
 
   constexpr explicit array(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(array(std::ranges::begin(rg), std::ranges::end(rg))))
+    noexcept(noexcept(append_range(std::forward<decltype(rg)>(rg))))
     requires(!std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>):
     array()
   {
@@ -201,7 +201,7 @@ public:
   }
 
   constexpr array(from_range_t, std::ranges::input_range auto&& rg)
-    noexcept(noexcept(array(std::ranges::begin(rg), std::ranges::end(rg)))):
+    noexcept(noexcept(append_range(std::forward<decltype(rg)>(rg)))):
     array()
   {
     append_range(std::forward<decltype(rg)>(rg));
