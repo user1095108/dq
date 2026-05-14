@@ -376,45 +376,6 @@ public:
     assign(l.begin(), l.end());
   }
 
-  template <int = 0>
-  void assign_range(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(
-      std::is_lvalue_reference_v<decltype(rg)> ?
-        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
-        assign(std::make_move_iterator(std::ranges::begin(rg)),
-          std::make_move_iterator(std::ranges::end(rg)))
-    ))
-    requires(!std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>)
-  {
-    std::is_lvalue_reference_v<decltype(rg)> ?
-      assign(std::ranges::begin(rg), std::ranges::end(rg)) :
-      assign(std::make_move_iterator(std::ranges::begin(rg)),
-        std::make_move_iterator(std::ranges::end(rg)));
-  }
-
-  template <int = 0>
-  void assign_range(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(
-      std::is_lvalue_reference_v<decltype(rg)> ?
-        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
-        assign(std::make_move_iterator(std::ranges::begin(rg)),
-          std::make_move_iterator(std::ranges::end(rg)))
-    ))
-    requires(std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>)
-  {
-    if (this != &rg)
-      std::is_lvalue_reference_v<decltype(rg)> ?
-        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
-        assign(std::make_move_iterator(std::ranges::begin(rg)),
-          std::make_move_iterator(std::ranges::end(rg)));
-  }
-
-  constexpr void assign_range(std::initializer_list<T> rg)
-    noexcept(noexcept(assign_range<0>(rg)))
-  {
-    assign_range<0>(rg);
-  }
-
   //
   constexpr void clear() noexcept { l_ = f_; }
   constexpr void resize(size_type const c) noexcept { l_ = next_(f_, c); }
@@ -619,24 +580,60 @@ public:
 
   //
   template <int = 0>
-  constexpr auto insert_range(const_iterator const pos,
-    std::ranges::input_range auto&& rg)
+  void assign_range(std::ranges::input_range auto&& rg)
     noexcept(noexcept(
       std::is_lvalue_reference_v<decltype(rg)> ?
-        insert(pos, std::ranges::begin(rg), std::ranges::end(rg)) :
-        insert(pos,
-            std::make_move_iterator(std::ranges::begin(rg)),
-            std::make_move_iterator(std::ranges::end(rg))
-          )
+        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+        assign(std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg)))
     ))
+    requires(!std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>)
+  {
+    std::is_lvalue_reference_v<decltype(rg)> ?
+      assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+      assign(std::make_move_iterator(std::ranges::begin(rg)),
+        std::make_move_iterator(std::ranges::end(rg)));
+  }
+
+  template <int = 0>
+  void assign_range(std::ranges::input_range auto&& rg)
+    noexcept(noexcept(
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+        assign(std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg)))
+    ))
+    requires(std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>)
+  {
+    if (this != &rg)
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        assign(std::ranges::begin(rg), std::ranges::end(rg)) :
+        assign(std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg)));
+  }
+
+  template <int = 0>
+  constexpr void prepend_range(std::ranges::input_range auto&& rg)
+    noexcept(
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        noexcept(std::copy(E, std::ranges::rbegin(rg),
+          std::ranges::rend(rg), std::front_inserter(*this))) :
+        noexcept(std::move(E, std::ranges::rbegin(rg),
+          std::ranges::rend(rg), std::front_inserter(*this)))
+    )
   {
     if constexpr(std::is_lvalue_reference_v<decltype(rg)>)
-      return insert(pos, std::ranges::begin(rg), std::ranges::end(rg));
+      std::is_constant_evaluated() ?
+        std::copy(std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this)) :
+        std::copy(E, std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this));
     else
-      return insert(pos,
-          std::make_move_iterator(std::ranges::begin(rg)),
-          std::make_move_iterator(std::ranges::end(rg))
-        );
+      std::is_constant_evaluated() ?
+        std::move(std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this)) :
+        std::move(E, std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this));
   }
 
   template <int = 0>
@@ -664,34 +661,36 @@ public:
   }
 
   template <int = 0>
-  constexpr void prepend_range(std::ranges::input_range auto&& rg)
-    noexcept(
+  constexpr auto insert_range(const_iterator const pos,
+    std::ranges::input_range auto&& rg)
+    noexcept(noexcept(
       std::is_lvalue_reference_v<decltype(rg)> ?
-        noexcept(std::copy(E, std::ranges::rbegin(rg),
-          std::ranges::rend(rg), std::front_inserter(*this))) :
-        noexcept(std::move(E, std::ranges::rbegin(rg),
-          std::ranges::rend(rg), std::front_inserter(*this)))
-    )
+        insert(pos, std::ranges::begin(rg), std::ranges::end(rg)) :
+        insert(pos,
+            std::make_move_iterator(std::ranges::begin(rg)),
+            std::make_move_iterator(std::ranges::end(rg))
+          )
+    ))
   {
     if constexpr(std::is_lvalue_reference_v<decltype(rg)>)
-      std::is_constant_evaluated() ?
-        std::copy(std::ranges::rbegin(rg), std::ranges::rend(rg),
-          std::front_inserter(*this)) :
-        std::copy(E, std::ranges::rbegin(rg), std::ranges::rend(rg),
-          std::front_inserter(*this));
+      return insert(pos, std::ranges::begin(rg), std::ranges::end(rg));
     else
-      std::is_constant_evaluated() ?
-        std::move(std::ranges::rbegin(rg), std::ranges::rend(rg),
-          std::front_inserter(*this)) :
-        std::move(E, std::ranges::rbegin(rg), std::ranges::rend(rg),
-          std::front_inserter(*this));
+      return insert(pos,
+          std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg))
+        );
   }
 
-  constexpr auto insert_range(const_iterator const pos,
-    std::initializer_list<T> rg)
-    noexcept(noexcept(insert_range<0>(pos, rg)))
+  constexpr void assign_range(std::initializer_list<T> rg)
+    noexcept(noexcept(assign_range<0>(rg)))
   {
-    return insert_range<0>(pos, rg);
+    assign_range<0>(rg);
+  }
+
+  constexpr void prepend_range(std::initializer_list<T> rg)
+    noexcept(noexcept(prepend_range<0>(rg)))
+  {
+    prepend_range<0>(rg);
   }
 
   constexpr void append_range(std::initializer_list<T> rg)
@@ -700,10 +699,11 @@ public:
     append_range<0>(rg);
   }
 
-  constexpr void prepend_range(std::initializer_list<T> rg)
-    noexcept(noexcept(prepend_range<0>(rg)))
+  constexpr decltype(auto) insert_range(const_iterator const pos,
+    std::initializer_list<T> rg)
+    noexcept(noexcept(insert_range<0>(pos, rg)))
   {
-    prepend_range<0>(rg);
+    return insert_range<0>(pos, rg);
   }
 
   //
