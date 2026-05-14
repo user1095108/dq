@@ -195,14 +195,16 @@ public:
   constexpr explicit array(std::ranges::input_range auto&& rg)
     noexcept(noexcept(array(std::ranges::begin(rg), std::ranges::end(rg))))
     requires(!std::is_same_v<std::remove_cvref_t<decltype(rg)>, array>):
-    array(std::ranges::begin(rg), std::ranges::end(rg))
+    array()
   {
+    append_range(std::forward<decltype(rg)>(rg));
   }
 
   constexpr array(from_range_t, std::ranges::input_range auto&& rg)
     noexcept(noexcept(array(std::ranges::begin(rg), std::ranges::end(rg)))):
-    array(std::ranges::begin(rg), std::ranges::end(rg))
+    array()
   {
+    append_range(std::forward<decltype(rg)>(rg));
   }
 
   ~array() requires(NEW != M) = default;
@@ -595,34 +597,71 @@ public:
   template <int = 0>
   constexpr auto insert_range(const_iterator const pos,
     std::ranges::input_range auto&& rg)
-    noexcept(noexcept(insert(pos, std::ranges::begin(rg),
-      std::ranges::end(rg))))
+    noexcept(
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        noexcept(insert(pos, std::ranges::begin(rg),
+          std::ranges::end(rg))) :
+        noexcept(insert(pos,
+            std::make_move_iterator(std::ranges::begin(rg)),
+            std::make_move_iterator(std::ranges::end(rg))
+          ))
+    )
   {
-    return insert(pos, std::ranges::begin(rg), std::ranges::end(rg));
+    if constexpr(std::is_lvalue_reference_v<decltype(rg)>)
+      return insert(pos, std::ranges::begin(rg), std::ranges::end(rg));
+    else
+      return insert(pos,
+          std::make_move_iterator(std::ranges::begin(rg)),
+          std::make_move_iterator(std::ranges::end(rg))
+        );
   }
 
   template <int = 0>
   constexpr void append_range(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(std::copy(E, std::ranges::begin(rg),
-      std::ranges::end(rg), std::back_inserter(*this))))
+    noexcept(
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        noexcept(std::copy(E, std::ranges::begin(rg),
+          std::ranges::end(rg), std::back_inserter(*this))) :
+        noexcept(std::move(E, std::ranges::begin(rg),
+          std::ranges::end(rg), std::back_inserter(*this)))
+    )
   {
-    std::is_constant_evaluated() ?
-      std::copy(std::ranges::begin(rg), std::ranges::end(rg),
-        std::back_inserter(*this)) :
-      std::copy(E, std::ranges::begin(rg), std::ranges::end(rg),
-        std::back_inserter(*this));
+    if constexpr(std::is_lvalue_reference_v<decltype(rg)>)
+      std::is_constant_evaluated() ?
+        std::copy(std::ranges::begin(rg), std::ranges::end(rg),
+          std::back_inserter(*this)) :
+        std::copy(E, std::ranges::begin(rg), std::ranges::end(rg),
+          std::back_inserter(*this));
+    else
+      std::is_constant_evaluated() ?
+        std::move(std::ranges::begin(rg), std::ranges::end(rg),
+          std::back_inserter(*this)) :
+        std::move(E, std::ranges::begin(rg), std::ranges::end(rg),
+          std::back_inserter(*this));
   }
 
   template <int = 0>
   constexpr void prepend_range(std::ranges::input_range auto&& rg)
-    noexcept(noexcept(std::copy(E, std::ranges::rbegin(rg),
-      std::ranges::rend(rg), std::front_inserter(*this))))
+    noexcept(
+      std::is_lvalue_reference_v<decltype(rg)> ?
+        noexcept(std::copy(E, std::ranges::rbegin(rg),
+          std::ranges::rend(rg), std::front_inserter(*this))) :
+        noexcept(std::move(E, std::ranges::rbegin(rg),
+          std::ranges::rend(rg), std::front_inserter(*this)))
+    )
   {
-    std::is_constant_evaluated() ?
-      std::copy(std::ranges::rbegin(rg),
-        std::ranges::rend(rg), std::front_inserter(*this)) :
-      std::copy(E, std::ranges::rbegin(rg),
-        std::ranges::rend(rg), std::front_inserter(*this));
+    if constexpr(std::is_lvalue_reference_v<decltype(rg)>)
+      std::is_constant_evaluated() ?
+        std::copy(std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this)) :
+        std::copy(E, std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this));
+    else
+      std::is_constant_evaluated() ?
+        std::move(std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this)) :
+        std::move(E, std::ranges::rbegin(rg), std::ranges::rend(rg),
+          std::front_inserter(*this));
   }
 
   constexpr auto insert_range(const_iterator const pos,
