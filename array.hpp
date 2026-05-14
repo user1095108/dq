@@ -580,7 +580,7 @@ public:
 
   //
   template <int = 0>
-  void assign_range(std::ranges::input_range auto&& rg)
+  constexpr void assign_range(std::ranges::input_range auto&& rg)
     noexcept(noexcept(
       std::is_lvalue_reference_v<decltype(rg)> ?
         assign(std::ranges::begin(rg), std::ranges::end(rg)) :
@@ -596,7 +596,7 @@ public:
   }
 
   template <int = 0>
-  void assign_range(std::ranges::input_range auto&& rg)
+  constexpr void assign_range(std::ranges::input_range auto&& rg)
     noexcept(noexcept(
       std::is_lvalue_reference_v<decltype(rg)> ?
         assign(std::ranges::begin(rg), std::ranges::end(rg)) :
