@@ -3443,6 +3443,18 @@ void test() {
         assert(dq[i] == ref[i]);
     }
   }
+
+  // range moving
+  {
+    std::string a[]{"A", "B", "C"};
+    dq::array<std::string, std::size(a)> b;
+
+    assert(std::ranges::none_of(a, [](auto const& s){ return s.empty(); }));
+    assert(std::ranges::all_of(b, [](auto const& s){ return s.empty(); }));
+    b = std::move(a);
+    assert(std::ranges::all_of(a, [](auto const& s){ return s.empty(); }));
+    assert(std::ranges::none_of(b, [](auto const& s){ return s.empty(); }));
+  }
 }
 
 int main() {

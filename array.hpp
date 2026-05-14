@@ -611,8 +611,7 @@ public:
     return {this, prev_(i.n_, n)};
   }
 
-  constexpr auto insert(const_iterator const i,
-    std::initializer_list<value_type> l)
+  constexpr auto insert(const_iterator const i, std::initializer_list<T> l)
     noexcept(noexcept(insert(i, l.begin(), l.end())))
   {
     return insert(i, l.begin(), l.end());
