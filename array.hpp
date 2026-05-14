@@ -376,6 +376,7 @@ public:
     assign(l.begin(), l.end());
   }
 
+  template <int = 0>
   void assign_range(std::ranges::input_range auto&& rg)
     noexcept(noexcept(
       std::is_lvalue_reference_v<decltype(rg)> ?
@@ -391,6 +392,7 @@ public:
         std::make_move_iterator(std::ranges::end(rg)));
   }
 
+  template <int = 0>
   void assign_range(std::ranges::input_range auto&& rg)
     noexcept(noexcept(
       std::is_lvalue_reference_v<decltype(rg)> ?
@@ -405,6 +407,12 @@ public:
         assign(std::ranges::begin(rg), std::ranges::end(rg)) :
         assign(std::make_move_iterator(std::ranges::begin(rg)),
           std::make_move_iterator(std::ranges::end(rg)));
+  }
+
+  constexpr void assign_range(std::initializer_list<T> rg)
+    noexcept(noexcept(assign_range<0>(rg)))
+  {
+    assign_range<0>(rg);
   }
 
   //
