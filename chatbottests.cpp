@@ -1,4 +1,5 @@
 #include <cassert>
+#include <deque>
 #include <iostream>
 #include <memory>
 #include <numeric>
@@ -2514,7 +2515,7 @@ void test() {
 
     // Find first occurrence of 4 or 5
     auto it = dq::find(dq, 4, 5);
-    assert(it != dq.end() && *it == 4);
+    assert(it && *it == 4);
   }
 
   // Non-Trivial Types & Move Semantics
@@ -2734,9 +2735,9 @@ void test() {
   {
     dq::array<std::string, 5> strs{"apple", "banana", "cherry", "date", "elderberry"};
     auto it = dq::find(strs, std::string_view("cherry"));
-    assert(it != strs.end() && *it == "cherry");
+    assert(it && *it == "cherry");
     it = dq::find(strs, std::string_view("grape"));
-    assert(it == strs.end());
+    assert(!it);
   }
 
   // insert_range returning correct iterator to first inserted element
@@ -2769,6 +2770,678 @@ void test() {
     assert(dq[0] == Triplet(4, 5, 6));
     assert(dq[1] == Triplet(7, 8, 9));
     assert(dq[2] == Triplet(1, 2, 3));
+  }
+
+  // Empty range — must not crash or modify anything.
+  {
+    std::vector<int> v;
+    nicesort::sort(v.begin(), v.end());
+    assert(v.empty());
+  }
+
+  // Single element — already sorted by definition.
+  {
+    std::vector<int> v{42};
+    nicesort::sort(v.begin(), v.end());
+    assert(v[0] == 42);
+  }
+
+  // Two elements, already ordered.
+  {
+    std::vector<int> v{1, 2};
+    nicesort::sort(v.begin(), v.end());
+    assert((v == std::vector{1, 2}));
+  }
+
+  // Two elements, reversed.
+  {
+    std::vector<int> v{2, 1};
+    nicesort::sort(v.begin(), v.end());
+    assert((v == std::vector{1, 2}));
+  }
+
+  // Already sorted range — must remain sorted.
+  {
+    std::vector<int> v(64);
+    std::iota(v.begin(), v.end(), 0);
+    nicesort::sort(v.begin(), v.end());
+    assert(std::is_sorted(v.begin(), v.end()));
+    assert(v[0] == 0 && v[63] == 63);
+  }
+
+  // Reverse-sorted range.
+  {
+    std::vector<int> v(64);
+    std::iota(v.begin(), v.end(), 0);
+    std::reverse(v.begin(), v.end());
+    nicesort::sort(v.begin(), v.end());
+    assert(std::is_sorted(v.begin(), v.end()));
+  }
+
+  // All elements equal.
+  {
+    std::vector v(50, 7);
+    nicesort::sort(v.begin(), v.end());
+    assert(v.size() == 50);
+    for (int x : v) assert(x == 7);
+  }
+
+  // Duplicate-heavy — many equal groups.
+  {
+    std::vector<int> v;
+    for (int k = 0; k < 10; ++k)
+      for (int j = 0; j < 10; ++j) v.push_back(k);
+    std::shuffle(v.begin(), v.end(), std::mt19937{42});
+    nicesort::sort(v.begin(), v.end());
+    assert(std::is_sorted(v.begin(), v.end()));
+    assert(v.front() == 0 && v.back() == 9);
+  }
+
+  // Large random permutation.
+  {
+    std::vector<int> v(1024);
+    std::iota(v.begin(), v.end(), -512);
+    std::shuffle(v.begin(), v.end(), std::mt19937{123});
+    nicesort::sort(v.begin(), v.end());
+    assert(std::is_sorted(v.begin(), v.end()));
+    assert(v[0] == -512 && v[1023] == 511);
+  }
+
+  // Custom descending comparator.
+  {
+    std::vector<int> v{3, 1, 4, 1, 5, 9, 2, 6, 5};
+    nicesort::sort(v.begin(), v.end(), std::greater<int>{});
+    assert(std::is_sorted(v.begin(), v.end(), std::greater<int>{}));
+  }
+
+  // nicesort preserves relative order of equal keys (stability guarantee).
+  {
+    struct Keyed { int key, seq; };
+    std::vector<Keyed> v;
+    for (int i = 0; i < 20; ++i) v.push_back({i % 4, i});
+    nicesort::sort(v.begin(), v.end(), [](Keyed const& a, Keyed const& b){ return a.key < b.key; });
+    assert(std::is_sorted(v.begin(), v.end(), [](Keyed const& a, Keyed const& b){ return a.key < b.key; }));
+    // Within each key group the original insertion order (seq) must increase.
+    for (std::size_t i = 1; i < v.size(); ++i)
+      if (v[i].key == v[i-1].key) assert(v[i].seq > v[i-1].seq);
+  }
+
+  // nicesort on a plain array (pointer iterators).
+  {
+    int arr[] = {5, 3, 8, 1, 9, 2, 7, 4, 6};
+    nicesort::sort(arr, arr + 9);
+    assert(std::is_sorted(arr, arr + 9));
+  }
+
+  // random_access_iterator requirement.
+  {
+    using A = dq::array<int, 8>;
+    static_assert(std::random_access_iterator<A::iterator>);
+    // const_iterator has the correct iterator_category tag.
+    static_assert(std::same_as<
+      A::const_iterator::iterator_category,
+      std::random_access_iterator_tag>);
+  }
+
+  // Negative offset arithmetic: it + (-n) == it - n.
+  {
+    dq::array<int, 8> dq = {10, 20, 30, 40, 50};
+    auto e = dq.end();
+    assert(*(e + (-1)) == 50);
+    assert(*(e + (-3)) == 30);
+    assert(*(e - 1) == *(e + (-1)));
+  }
+
+  // Reverse-iterator subscript operator[].
+  {
+    dq::array<int, 6> dq = {0, 1, 2, 3, 4};
+    auto r = dq.rbegin();
+    assert(r[0] == 4);
+    assert(r[1] == 3);
+    assert(r[4] == 0);
+
+    // Same test on a wrapped buffer.
+    dq::array<int, 4> circ;
+    for (int v : {1, 2, 3, 4}) circ.push_back(v);
+    circ.pop_front(); circ.push_back(5); // [2,3,4,5]
+    auto cr = circ.rbegin();
+    assert(cr[0] == 5);
+    assert(cr[1] == 4);
+    assert(cr[3] == 2);
+  }
+
+  // Cross-type iterator comparison (iterator vs const_iterator).
+  {
+    dq::array<int, 6> dq = {1, 2, 3, 4, 5};
+    auto  it  = dq.begin() + 2;
+    auto  cit = dq.cbegin() + 2;
+
+    assert(it == cit);          // iterator == const_iterator
+    assert(cit == it);          // symmetric
+    assert(!(it != cit));
+
+    auto it2 = dq.begin() + 3;
+    assert(it2 != cit);
+    assert((it2 <=> cit) > 0);
+    assert((cit <=> it2) < 0);
+  }
+
+  // Iterator difference between iterators at different offsets.
+  {
+    dq::array<int, 8> dq = {0, 1, 2, 3, 4, 5, 6, 7};
+    auto   it  = dq.begin();
+    auto   it2 = dq.begin() + 5;
+    assert(it2 - it == 5);
+    assert(it  - it2 == -5);
+  }
+
+  // emplace_back / emplace_front return reference to emplaced element.
+  {
+    dq::array<int, 5> dq;
+    int& r1 = dq.emplace_back(42);
+    assert(r1 == 42 && &r1 == &dq.back());
+
+    int& r2 = dq.emplace_front(99);
+    assert(r2 == 99 && &r2 == &dq.front());
+  }
+
+  // prepend_range on a fresh container.
+  {
+    dq::array<int, 10> dq = {4, 5, 6};
+    dq.prepend_range({1, 2, 3});
+    assert((dq == std::array{1, 2, 3, 4, 5, 6}));
+    assert(dq.size() == 6);
+  }
+
+  // prepend_range on a wrapped buffer.
+  {
+    dq::array<int, 8> circ;
+    for (int v : {10, 20, 30, 40, 50, 60}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front(); // remove 10, 20 → logical [30,40,50,60]
+    circ.prepend_range({1, 2});
+    assert((circ == std::array{1, 2, 30, 40, 50, 60}));
+  }
+
+  // prepend_range with empty range — must be a no-op.
+  {
+    dq::array<int, 6> dq = {7, 8, 9};
+    dq.prepend_range({});
+    assert((dq == std::array{7, 8, 9}));
+    assert(dq.size() == 3);
+  }
+
+  // prepend_range using an initializer_list overload.
+  {
+    dq::array<int, 8> dq = {4, 5};
+    dq.prepend_range({1, 2, 3});
+    assert(dq.size() == 5);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
+  }
+
+  // insert(pos, initializer_list) on wrapped buffer
+  {
+    dq::array<int, 10> circ;
+    for (int v : {10, 20, 30, 40, 50}) circ.push_back(v);
+    circ.pop_front(); circ.push_back(60); // [20,30,40,50,60] wrapped
+    circ.insert(circ.begin() + 2, {100, 200});
+    assert(circ.size() == 7);
+    assert(circ[0] == 20 && circ[1] == 30);
+    assert(circ[2] == 100 && circ[3] == 200);
+    assert(circ[4] == 40 && circ[5] == 50 && circ[6] == 60);
+  }
+
+  // sort on a sub-range of a wrapped buffer
+  {
+    dq::array<int, 8> circ;
+    for (int v : {5, 3, 9, 1, 7, 4, 2, 8}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front();
+    circ.push_back(6); circ.push_back(0); // wrapped: [9,1,7,4,2,8,6,0] (logical, wrapped in storage)
+
+    // Sort only the middle portion [begin+1, begin+5).
+    auto lo = circ.begin() + 1;
+    auto hi = circ.begin() + 5;
+    circ.sort(lo, hi);
+    assert(std::is_sorted(circ.begin() + 1, circ.begin() + 5));
+    // Unsorted extremes are untouched.
+    assert(*circ.begin() == 9);
+    assert(*(circ.begin() + 5) == 8);
+  }
+
+  // stable_sort on a sub-range of a wrapped buffer — stability preserved.
+  {
+    struct S { int key, seq; };
+    dq::array<S, 8> circ;
+    int idx = 0;
+    for (int k : {4, 2, 4, 1, 3, 2, 3, 1}) circ.push_back({k, idx++});
+    circ.pop_front(); circ.pop_front();
+    circ.push_back({5, idx++}); circ.push_back({0, idx++}); // wrapped
+
+    circ.stable_sort(circ.begin(), circ.end(),
+      [](S const& a, S const& b){ return a.key < b.key; });
+    assert(std::is_sorted(circ.begin(), circ.end(),
+      [](S const& a, S const& b){ return a.key < b.key; }));
+    for (std::size_t i = 1; i < circ.size(); ++i)
+      if (circ[i].key == circ[i-1].key)
+        assert(circ[i].seq > circ[i-1].seq);
+  }
+
+  // pop on a single-element container.
+  {
+    dq::array<int, 4> dq = {99};
+    dq.pop_back();
+    assert(dq.empty());
+
+    dq.push_back(42);
+    dq.pop_front();
+    assert(dq.empty());
+  }
+
+  // Alternating push_back / pop_front on a 1-slot container.
+  {
+    dq::array<int, 1> tiny;
+    for (int i = 0; i < 100; ++i) {
+      tiny.push_back(i);
+      assert(tiny.size() == 1);
+      assert(tiny.front() == i);
+      tiny.pop_front();
+      assert(tiny.empty());
+    }
+  }
+
+  // Push and pop in lock-step, verifying FIFO order across many wrap cycles.
+  {
+    constexpr int CAP = 7;
+    dq::array<int, CAP> dq;
+    int next_push = 0, next_pop = 0;
+
+    // Fill to capacity.
+    while (!dq.full()) dq.push_back(next_push++);
+
+    // For each subsequent push, pop one from front first; verify value.
+    for (int round = 0; round < 3 * CAP; ++round) {
+      assert(dq.front() == next_pop++);
+      dq.pop_front();
+      dq.push_back(next_push++);
+      assert(std::ptrdiff_t(dq.size()) == CAP);
+    }
+
+    // Drain and verify FIFO order.
+    while (!dq.empty()) {
+      assert(dq.front() == next_pop++);
+      dq.pop_front();
+    }
+    assert(next_pop == next_push);
+  }
+
+  // assign_range with a transformed view
+  {
+    dq::array<int, 10> dq = {100, 200, 300};
+    auto sq = std::views::iota(1, 6) | std::views::transform([](int x){ return x * x; });
+    dq.assign_range(sq);
+    assert(dq.size() == 5);
+    assert((dq == std::array{1, 4, 9, 16, 25}));
+  }
+
+  // assign_range from another dq::array (self-assign guards against corruption).
+  {
+    dq::array<int, 6> dq = {1, 2, 3};
+    dq::array<int, 6> src = {7, 8, 9, 10};
+    dq.assign_range(src);
+    assert(dq.size() == 4);
+    assert((dq == std::array{7, 8, 9, 10}));
+  }
+
+  // Erase single occurrence.
+  {
+    dq::array<int, 8> dq = {1, 2, 3, 2, 4};
+    auto removed = dq::erase(dq, 2);
+    assert(removed == 2); // both 2s are removed
+    assert(dq.size() == 3);
+    assert((dq == std::array{1, 3, 4}));
+  }
+
+  // Erase value not present — count must be zero.
+  {
+    dq::array<int, 6> dq = {1, 2, 3};
+    auto removed = dq::erase(dq, 99);
+    assert(removed == 0);
+    assert(dq.size() == 3);
+  }
+
+  // Erase multiple keys in a single call.
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6};
+    auto removed = dq::erase(dq, 2, 4, 6);
+    assert(removed == 3);
+    assert((dq == std::array{1, 3, 5}));
+  }
+
+  // Erase all elements by value.
+  {
+    dq::array<int, 5> dq = {7, 7, 7, 7};
+    auto removed = dq::erase(dq, 7);
+    assert(removed == 4);
+    assert(dq.empty());
+  }
+
+  // count_if — all match.
+  {
+    dq::array<int, 6> dq = {2, 4, 6, 8, 10};
+    auto n = dq::count_if(dq, [](int x){ return x % 2 == 0; });
+    assert(n == 5);
+  }
+
+  // count_if — none match.
+  {
+    dq::array<int, 6> dq = {1, 3, 5, 7};
+    auto n = dq::count_if(dq, [](int x){ return x % 2 == 0; });
+    assert(n == 0);
+  }
+
+  // count_if on an empty container.
+  {
+    dq::array<int, 4> empty;
+    assert(dq::count_if(empty, [](int){ return true; }) == 0);
+  }
+
+  // count_if across a wrap boundary.
+  {
+    dq::array<int, 6> circ;
+    for (int v : {1, 2, 3, 4, 5, 6}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front();
+    circ.push_back(7); circ.push_back(8); // logical [3,4,5,6,7,8], wrapped
+    auto odd = dq::count_if(circ, [](int x){ return x % 2 != 0; });
+    auto evn = dq::count_if(circ, [](int x){ return x % 2 == 0; });
+    assert(odd == 3 && evn == 3); // 3,5,7 odd; 4,6,8 even
+  }
+
+  // find_if — first element matches.
+  {
+    dq::array<int, 5> dq = {10, 20, 30};
+    auto it = dq::find_if(dq, [](int x){ return x == 10; });
+    assert(it == dq.begin() && *it == 10);
+  }
+
+  // find_if — last element matches.
+  {
+    dq::array<int, 5> dq = {1, 3, 5, 7, 9};
+    auto it = dq::find_if(dq, [](int x){ return x == 9; });
+    assert(it != dq.end() && *it == 9);
+  }
+
+  // find_if on a wrapped buffer — finds element in second physical segment.
+  {
+    dq::array<int, 4> circ;
+    for (int v : {10, 20, 30, 40}) circ.push_back(v);
+    circ.pop_front(); circ.push_back(50); // logical [20,30,40,50], wrapped
+    auto it = dq::find_if(circ, [](int x){ return x == 50; });
+    assert(it != circ.end() && *it == 50);
+  }
+
+  // dq::swap free function
+  {
+    dq::array<int, 6> a = {1, 2, 3};
+    dq::array<int, 6> b = {4, 5, 6, 7};
+    dq::swap(a, b);
+    assert((a == std::array{4, 5, 6, 7}));
+    assert((b == std::array{1, 2, 3}));
+  }
+
+  // Reverse-iterator arithmetic on a wrapped buffer
+  {
+    dq::array<int, 5> circ;
+    for (int v : {1, 2, 3, 4, 5}) circ.push_back(v);
+    circ.pop_front(); circ.push_back(6); // [2,3,4,5,6], wrapped
+    auto rb = circ.rbegin();
+    auto re = circ.rend();
+
+    // rbegin points at last logical element.
+    assert(*rb == 6);
+    // Advance by 3.
+    auto rm = rb + 3;
+    assert(*rm == 3);
+    // Retreat by 1.
+    auto rm2 = rm - 1;
+    assert(*rm2 == 4);
+    // Distance.
+    assert(re - rb == 5);
+    assert(rb - re == -5);
+    // += / -=
+    rb += 2;
+    assert(*rb == 4);
+    rb -= 1;
+    assert(*rb == 5);
+  }
+
+  // insert(pos, count, value) across wrap boundary
+  {
+    dq::array<int, 12> circ;
+    for (int v : {10, 20, 30, 40, 50}) circ.push_back(v);
+    circ.pop_front(); circ.push_back(60); // [20,30,40,50,60], wrapped
+    auto it = circ.insert(circ.begin() + 2, std::size_t(3), 99);
+    assert(circ.size() == 8);
+    assert(*it == 99);
+    assert(circ[2] == 99 && circ[3] == 99 && circ[4] == 99);
+    assert(circ[0] == 20 && circ[1] == 30 && circ[5] == 40);
+  }
+
+  // Range erase that returns exactly end().
+  {
+    dq::array<int, 6> dq = {1, 2, 3, 4};
+    auto it = dq.erase(dq.begin() + 2, dq.end());
+    assert(it == dq.end());
+    assert(dq.size() == 2);
+    assert((dq == std::array{1, 2}));
+  }
+
+  // Range erase on a wrapped buffer.
+  {
+    dq::array<int, 6> circ;
+    for (int v : {10, 20, 30, 40, 50, 60}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front();
+    circ.push_back(70); circ.push_back(80); // [30,40,50,60,70,80] wrapped
+    auto it = circ.erase(circ.begin() + 1, circ.begin() + 3); // erase 40,50
+    assert(*it == 60);
+    assert(circ.size() == 4);
+    assert((circ == std::array{30, 60, 70, 80}));
+  }
+
+  // NEW allocator — copy construction
+  {
+    dq::array<int, 6, dq::NEW> src = {1, 2, 3, 4};
+    dq::array<int, 6, dq::NEW> dst(src); // copy ctor
+    assert(dst.size() == 4);
+    assert((dst == src));
+    // Mutation of dst must not affect src.
+    dst[0] = 999;
+    assert(src[0] == 1);
+  }
+
+  // Initializer-list assignment operator
+  {
+    dq::array<int, 8> dq = {1, 2, 3, 4, 5};
+    dq = {10, 20, 30};
+    assert(dq.size() == 3);
+    assert((dq == std::array{10, 20, 30}));
+  }
+
+  // Range-assignment operator= from a range
+  {
+    dq::array<int, 8> dq = {0, 0, 0};
+    dq = std::views::iota(1, 7);
+    assert(dq.size() == 6);
+    assert((dq == std::array{1, 2, 3, 4, 5, 6}));
+  }
+
+  // Interleave push_front and push_back, verify final order is correct.
+  {
+    dq::array<int, 10> dq;
+    // Each push_front goes before the existing front; each push_back goes after.
+    dq.push_back(3);
+    dq.push_front(2);
+    dq.push_back(4);
+    dq.push_front(1);
+    dq.push_back(5);
+    assert(dq.size() == 5);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
+  }
+
+  // sort() with descending comparator across a wrap boundary
+  {
+    dq::array<int, 8> circ;
+    for (int v : {4, 2, 7, 1, 5, 3, 6}) circ.push_back(v);
+    circ.pop_front(); circ.pop_front();
+    circ.push_back(9); circ.push_back(8); // wrapped state
+    circ.sort(circ.begin(), circ.end(), std::greater<int>{});
+    assert(std::is_sorted(circ.begin(), circ.end(), std::greater<int>{}));
+  }
+
+  // std::ranges concept satisfaction
+  {
+    using A = dq::array<int, 8>;
+    static_assert(std::ranges::range<A>);
+    static_assert(std::ranges::sized_range<A>);
+    static_assert(std::ranges::random_access_range<A>);
+    static_assert(std::ranges::common_range<A>);
+
+    A dq = {5, 3, 1, 4, 2};
+    assert(std::ranges::distance(dq) == 5);
+    assert(*std::ranges::min_element(dq) == 1);
+    assert(*std::ranges::max_element(dq) == 5);
+  }
+
+  // Accumulate / transform / copy_if via std algorithms
+  {
+    dq::array<int, 10> src = {1, 2, 3, 4, 5, 6};
+    // transform into another dq
+    dq::array<int, 10> dst;
+    dst.resize(src.size());
+    std::transform(src.begin(), src.end(), dst.begin(), [](int x){ return x * x; });
+    assert((dst == std::array{1, 4, 9, 16, 25, 36}));
+
+    // copy_if to a vector
+    std::vector<int> evens;
+    std::copy_if(src.begin(), src.end(), std::back_inserter(evens), [](int x){ return x % 2 == 0; });
+    assert((evens == std::vector{2, 4, 6}));
+  }
+
+  // Repeated resize doesn't corrupt existing elements
+  {
+    dq::array<int, 20> dq;
+    for (int i = 0; i < 10; ++i) dq.push_back(i);
+    dq.resize(5);
+    assert(dq.size() == 5 && dq[4] == 4);
+    dq.resize(8, 42);
+    assert(dq.size() == 8 && dq[5] == 42 && dq[7] == 42);
+    dq.resize(3);
+    assert(dq.size() == 3 && dq[0] == 0 && dq[2] == 2);
+    dq.resize(0);
+    assert(dq.empty());
+  }
+
+  // Mixed operations with std::string elements on wrapped buffer
+  {
+    dq::array<std::string, 5> dq;
+    dq.push_back("cat");
+    dq.push_back("dog");
+    dq.push_back("fox");
+    dq.push_back("owl");
+    dq.push_back("ant"); // full
+    dq.push_back("bee"); // overwrites "cat" → [dog,fox,owl,ant,bee]
+    assert(dq.front() == "dog" && dq.back() == "bee");
+    assert(dq.size() == 5);
+
+    dq.sort(dq.begin(), dq.end()); // sort lexicographically
+    assert(std::is_sorted(dq.begin(), dq.end()));
+    assert(dq.front() == "ant" && dq.back() == "owl");
+  }
+
+  // Capacity static_assert — CAP template param
+  {
+    static_assert(dq::array<int, 1>::capacity() == 1);
+    static_assert(dq::array<int, 100>::capacity() == 100);
+    static_assert(dq::array<int, 1000>::capacity() == 1000);
+  }
+
+  // Full-container erase followed by reinsertion
+  {
+    dq::array<int, 5> dq = {1, 2, 3, 4, 5};
+    assert(dq.full());
+    dq.erase(dq.begin(), dq.end());
+    assert(dq.empty());
+    for (int i = 10; i <= 14; ++i) dq.push_back(i);
+    assert(dq.full());
+    assert((dq == std::array{10, 11, 12, 13, 14}));
+  }
+
+  // max_size static assertions
+  {
+    static_assert(dq::array<int, 8>::max_size() == PTRDIFF_MAX);
+    static_assert(dq::array<char, 4>::max_size() == PTRDIFF_MAX);
+  }
+
+  // insert_range from a lazy view
+  {
+    dq::array<int, 12> dq = {1, 5};
+    auto mid = std::views::iota(2, 5); // 2, 3, 4
+    auto it = dq.insert_range(dq.begin() + 1, mid);
+    assert(*it == 2);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
+  }
+
+  // Verify that CTAD picks the right value_type and CAP
+  {
+    dq::array arr = {1.0, 2.0, 3.0}; // should deduce dq::array<double, 3>
+    static_assert(std::same_as<decltype(arr)::value_type, double>);
+    static_assert(decltype(arr)::capacity() == 3);
+    assert(arr.size() == 3 && arr[2] == 3.0);
+  }
+
+  // Heavy random-operation stress test with value verification
+  {
+    constexpr int CAP = 16;
+    dq::array<int, CAP> dq;
+    std::mt19937 rng{9999};
+    std::uniform_int_distribution<int> opd(0, 5);
+    std::deque<int> ref; // reference container
+    int  val = 0;
+
+    for (int iter = 0; iter < 2000; ++iter) {
+      switch (opd(rng)) {
+        case 0:
+          if (!dq.full()) { dq.push_back(val); ref.push_back(val++); }
+          break;
+        case 1:
+          if (!dq.full()) { dq.push_front(val); ref.push_front(val++); }
+          break;
+        case 2:
+          if (!dq.empty()) { dq.pop_back();  ref.pop_back(); }
+          break;
+        case 3:
+          if (!dq.empty()) { dq.pop_front(); ref.pop_front(); }
+          break;
+        case 4:
+          if (!dq.empty()) {
+            std::size_t idx = std::uniform_int_distribution<std::size_t>(0, dq.size()-1)(rng);
+            dq.erase(dq.begin() + static_cast<std::ptrdiff_t>(idx));
+            ref.erase(ref.begin() + static_cast<std::ptrdiff_t>(idx));
+          }
+          break;
+        case 5:
+          if (!dq.full()) {
+            std::size_t idx = std::uniform_int_distribution<std::size_t>(0, dq.size())(rng);
+            dq.insert(dq.begin() + static_cast<std::ptrdiff_t>(idx), val);
+            ref.insert(ref.begin() + static_cast<std::ptrdiff_t>(idx), val++);
+          }
+          break;
+      }
+
+      // Invariants.
+      assert(dq.size() == ref.size());
+      assert(dq.size() <= std::size_t(CAP));
+      for (std::size_t i = 0; i < dq.size(); ++i)
+        assert(dq[i] == ref[i]);
+    }
   }
 }
 
