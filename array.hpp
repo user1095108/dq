@@ -524,7 +524,7 @@ public:
     noexcept(noexcept((insert(i, std::forward<decltype(a)>(a)), ...)))
     requires(sizeof...(a) > 1)
   {
-    (++(i = insert(i, std::forward<decltype(a)>(a))), ...);
+    (++(i = insert<0>(i, std::forward<decltype(a)>(a))), ...);
 
     return {this, prev_(i.n_, sizeof...(a))};
   }

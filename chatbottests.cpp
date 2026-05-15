@@ -462,7 +462,7 @@ void test() {
     dq.emplace(dq.begin() + 2, 6);
     assert((dq == std::array{1, 2, 6, 3, 4, 5}));
   }
-  
+
   // Range erase.
   {
     dq::array<int, 10> dq = {1, 2, 3, 4, 5};
@@ -2602,11 +2602,11 @@ void test() {
     dq::array<int, 6> wrap;
     for (int i = 0; i < 6; ++i) wrap.push_back(i);
     wrap.pop_front(); wrap.push_back(6); // Wrapped state: [1,2,3,4,5,6]
-    
+
     wrap.resize(3); // Shrink
     assert(wrap.size() == 3);
     assert((wrap == std::array{1, 2, 3}));
-    
+
     wrap.resize(5, 99); // Grow with fill
     assert(wrap.size() == 5);
     assert(wrap[0] == 1);
@@ -3457,6 +3457,182 @@ void test() {
 
     b.assign_range({"a", {"b"}, {"c"}});
     assert(3 == b.size());
+  }
+
+  // Cross-container comparison (dq::array vs std::vector/deque)
+  {
+    dq::array<int, 10> da = {1, 2, 3, 4, 5};
+    std::vector<int> vec = {1, 2, 3, 4, 5};
+    std::deque<int> deq = {1, 2, 3, 4, 5};
+    assert(da == vec);
+    assert(da == deq);
+    assert(!(da < vec));
+    assert((da <=> vec) == 0);
+    vec.push_back(6);
+    assert(da < vec);
+    assert((da <=> vec) < 0);
+  }
+
+  // c++20 Ranges Customization Points interoperability
+  {
+    dq::array<int, 5> ra = {10, 20, 30};
+    assert(std::ranges::data(ra) == ra.data());
+    assert(std::ranges::size(ra) == ra.size());
+    assert(std::ranges::empty(ra) == ra.empty());
+    assert(*std::ranges::begin(ra) == 10);
+    assert(std::ranges::distance(ra) == 3);
+    // Verify contiguous_range is false (circular buffer is not physically contiguous)
+    static_assert(!std::ranges::contiguous_range<dq::array<int, 5>>);
+  }
+
+  // insert with count == 0 (explicit no-op verification)
+  {
+    dq::array<int, 10> nz = {1, 2, 3};
+    auto original = nz;
+    auto ret = nz.insert(nz.begin() + 1, 0, 99);
+    assert(nz == original);
+    assert(ret == nz.begin() + 1);
+  }
+
+  // assign with empty initializer list on full container
+  {
+    dq::array<int, 4> full_arr{1, 2, 3, 4};
+    assert(full_arr.full());
+    full_arr.assign({});
+    assert(full_arr.empty());
+    assert(full_arr.first() == full_arr.last());
+  }
+
+  // dq::erase with multiple keys on a fully wrapped buffer
+  {
+    dq::array<int, 6> wrap;
+    for(int i=0; i<6; ++i) wrap.push_back(i);
+    wrap.pop_front(); wrap.push_back(6); // wrapped state: [1,2,3,4,5,6]
+    auto removed = dq::erase(wrap, 2, 5, 99);
+    assert(removed == 2);
+    assert(wrap.size() == 4);
+    assert((wrap == std::array{1,3,4,6}));
+  }
+
+  // explicit std::move_iterator usage in assign/insert
+  {
+    std::vector<std::string> src = {"A", "B", "C"};
+    dq::array<std::string, 10> move_arr;
+    move_arr.assign(std::make_move_iterator(src.begin()), std::make_move_iterator(src.end()));
+    assert(move_arr.size() == 3);
+    assert(move_arr[0] == "A");
+    // Verify source was moved from
+    assert(src[0].empty());
+  }
+
+  // move Semantics via std::move_iterator
+  {
+    std::vector<std::string> src = {"A", "B", "C"};
+    dq::array<std::string, 10> dst;
+
+    // Assign from move iterators
+    dst.assign(std::make_move_iterator(src.begin()),
+               std::make_move_iterator(src.end()));
+
+    assert(dst.size() == 3);
+    assert(dst[0] == "A" && dst[1] == "B" && dst[2] == "C");
+    // Source elements should be moved-from
+    assert(src[0].empty() && src[1].empty() && src[2].empty());
+
+    // Insert with move iterators
+    std::vector<std::string> src2 = {"X", "Y"};
+    dst.insert(dst.begin(), std::make_move_iterator(src2.begin()),
+                               std::make_move_iterator(src2.end()));
+    assert(dst.size() == 5 && dst[0] == "X" && dst[1] == "Y");
+    assert(src2[0].empty());
+  }
+
+  // alignment & Memory Layout
+  {
+    struct alignas(64) AlignedInt { int val; };
+    dq::array<AlignedInt, 4> dq;
+    dq.push_back({1}); dq.push_back({2});
+
+    // Verify element alignment
+    assert(reinterpret_cast<uintptr_t>(&dq.front()) % 64 == 0);
+    assert(reinterpret_cast<uintptr_t>(&dq[1]) % 64 == 0);
+
+    // Verify data pointer alignment
+    assert(reinterpret_cast<uintptr_t>(dq.data()) % 64 == 0);
+  }
+
+  // concept checks
+  {
+    // dq::array is a circular buffer; elements are not physically contiguous
+    static_assert(std::ranges::random_access_range<dq::array<int, 5>>);
+    static_assert(std::ranges::sized_range<dq::array<int, 5>>);
+    static_assert(!std::ranges::contiguous_range<dq::array<int, 5>>);
+  }
+
+  // dq::copy with Size Limits on Wrapped Buffer
+  {
+    dq::array<int, 5> dq;
+    for (int i = 0; i < 5; ++i) dq.push_back(i);
+    dq.pop_front(); dq.push_back(5); // Wrapped: [1, 2, 3, 4, 5]
+
+    int buf_small[3];
+    dq::copy(dq, buf_small, 3); // Copy first 3 elements
+    assert(buf_small[0] == 1 && buf_small[1] == 2 && buf_small[2] == 3);
+
+    int buf_large[10];
+    dq::copy(dq, buf_large, 10); // Copy all, buffer larger
+    assert(buf_large[0] == 1 && buf_large[4] == 5);
+  }
+
+  // dq::erase with Multiple Keys on Wrapped Buffer
+  {
+    dq::array<int, 5> dq;
+    for (int i = 0; i < 5; ++i) dq.push_back(i);
+    dq.push_back(5); // Wrapped: [1, 2, 3, 4, 5]
+
+    auto removed = dq::erase(dq, 2, 4);
+    assert(removed == 2);
+    assert(dq.size() == 3);
+    assert(dq[0] == 1 && dq[1] == 3 && dq[2] == 5);
+  }
+
+  // dq::multi Insert on Full Container
+  {
+    dq::array full{1, 2};
+    assert(full.full());
+    // Insert two elements at begin; full container drops oldest as needed
+    auto it = full.insert(dq::multi, full.begin(), 10, 20);
+    assert(full.size() == 2);
+    assert(full[0] == 1 && full[1] == 2);
+  }
+
+  // std::inplace_merge trigger across Wrap Boundary
+  {
+    dq::array<int, 6> dq;
+    // Create a wrapped state where sorting requires a merge across the physical split
+    dq.push_back(10); dq.push_back(20); dq.push_back(5);
+    dq.push_back(6); dq.push_back(7); dq.push_back(8);
+    dq.pop_front(); dq.push_back(30); // Wrapped state
+
+    dq.sort(dq.begin(), dq.end());
+    assert(std::is_sorted(dq.begin(), dq.end()));
+    assert(dq.front() == 5 && dq.back() == 30);
+  }
+
+  // dq::erase_if on Wrapped Buffer with Complex Type
+  {
+    dq::array<std::string, 4> dq;
+    dq.push_back("hello"); dq.push_back("world");
+    dq.push_back("foo");   dq.push_back("bar");
+    dq.pop_front(); dq.push_back("baz"); // Wrapped: [world, foo, bar, baz]
+
+    auto removed = dq::erase_if(dq, [](const std::string& s){
+        return s == "foo" || s == "baz";
+    });
+
+    assert(removed == 2);
+    assert(dq.size() == 2);
+    assert(dq[0] == "world" && dq[1] == "bar");
   }
 }
 
