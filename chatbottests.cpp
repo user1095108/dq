@@ -4204,6 +4204,12 @@ void test() {
     assert(std::is_sorted(dq.begin(), dq.end()));
     for (int x : dq) assert(x % 3 != 0);
   }
+
+  {
+    dq::array a{1, 2, 3, 4};
+    a = std::move(a);
+    assert((a == std::array{1, 2, 3, 4}));
+  }
 }
 
 int main() {
