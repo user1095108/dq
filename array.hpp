@@ -537,10 +537,10 @@ public:
   template <int = 0>
   constexpr iterator insert(const_iterator i, size_type const count,
     auto const& a)
-    noexcept(noexcept(insert(i, a)))
+    noexcept(noexcept(insert<0>(i, a)))
     requires(std::is_assignable_v<value_type&, decltype(a)>)
   {
-    for (auto n(count); n; --n, ++(i = insert(i, a)));
+    for (auto n(count); n; --n, ++(i = insert<0>(i, a)));
 
     return {this, prev_(i.n_, count)};
   }
