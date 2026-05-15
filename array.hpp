@@ -519,9 +519,8 @@ public:
     return insert<0>(i, std::move(a));
   }
 
-  template <int = 0>
   constexpr iterator insert(multi_t, const_iterator i, auto&& ...a)
-    noexcept(noexcept((insert(i, std::forward<decltype(a)>(a)), ...)))
+    noexcept(noexcept((insert<0>(i, std::forward<decltype(a)>(a)), ...)))
     requires(sizeof...(a) > 1)
   {
     (++(i = insert<0>(i, std::forward<decltype(a)>(a))), ...);
@@ -745,10 +744,10 @@ public:
 
   constexpr void push_front(auto&& ...a)
     noexcept(noexcept(
-      insert<0>(multi, cbegin(), std::forward<decltype(a)>(a)...)))
+      insert(multi, cbegin(), std::forward<decltype(a)>(a)...)))
     requires(sizeof...(a) > 1)
   {
-    insert<0>(multi, cbegin(), std::forward<decltype(a)>(a)...);
+    insert(multi, cbegin(), std::forward<decltype(a)>(a)...);
   }
 
   constexpr void push_front(value_type a)
