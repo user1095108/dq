@@ -15,13 +15,13 @@ template <typename It>
 void insertion_sort(It const i, It const j, auto cmp)
 {
   for (auto m(i + 1); j != m; ++m)
-    if (cmp(*m, *(m - 1)))
+    if (cmp(*m, m[-1]))
     {
       auto tmp(std::move(*m));
 
       auto n(m);
 
-      while (*n = std::move(*(n - 1)), (i != --n) && cmp(tmp, *(n - 1)));
+      while (*n = std::move(n[-1]), (i != --n) && cmp(tmp, n[-1]));
 
       *n = std::move(tmp);
     }
@@ -31,7 +31,7 @@ template <auto E, typename It>
 void merge(It& a, It& b, It& c, It& d, auto& cmp)
 { // merge runs [a, b) and [c, d)
   // assert(b == c);
-  if (cmp(*b, *(b - 1)))
+  if (cmp(*b, b[-1]))
     std::inplace_merge(E, a, b, d, cmp);
 
   b = d; c = a;

@@ -1,6 +1,8 @@
 #include <cassert>
 #include <deque>
+#include <forward_list>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <random>
@@ -3600,10 +3602,8 @@ void test() {
   {
     dq::array full{1, 2};
     assert(full.full());
-    // Insert two elements at begin; full container drops oldest as needed
-    auto it = full.insert(dq::multi, full.begin(), 10, 20);
-    assert(full.size() == 2);
-    assert(full[0] == 1 && full[1] == 2);
+    full.insert(dq::multi, full.begin(), 10, 20);
+    assert((full == std::array{1, 2}));
   }
 
   // std::inplace_merge trigger across Wrap Boundary
@@ -3633,6 +3633,576 @@ void test() {
     assert(removed == 2);
     assert(dq.size() == 2);
     assert(dq[0] == "world" && dq[1] == "bar");
+  }
+
+  // nicesort boundary conditions — sizes around bsize0 (default 16).
+  // Each size tests a different code path inside the merge logic.
+  {
+    for (std::size_t n : {15u, 16u, 17u, 31u, 32u, 33u, 63u, 64u, 65u, 127u, 128u, 129u}) {
+      std::vector<int> v(n);
+      std::iota(v.begin(), v.end(), 0);
+      std::shuffle(v.begin(), v.end(), std::mt19937{static_cast<unsigned>(n * 31 + 7)});
+      auto ref = v;
+      nicesort::sort(v.begin(), v.end());
+      std::sort(ref.begin(), ref.end());
+      assert(v == ref);
+    }
+  }
+
+  // nicesort with floating-point and negative values.
+  {
+    std::vector<double> v{3.14, -2.71, 0.0, 1.41, -1.0, 2.72, -0.5, 100.0, -100.0};
+    nicesort::sort(v.begin(), v.end());
+    assert(std::is_sorted(v.begin(), v.end()));
+    assert(v.front() == -100.0 && v.back() == 100.0);
+
+    // All negative.
+    std::vector<int> neg{-5, -3, -9, -1, -7, -2, -8, -4, -6};
+    nicesort::sort(neg.begin(), neg.end());
+    assert(std::is_sorted(neg.begin(), neg.end()));
+    assert(neg.front() == -9 && neg.back() == -1);
+  }
+
+  // nicesort::insertion_sort direct invocation.
+  {
+    std::vector<int> v{5, 3, 8, 1, 9, 2, 7, 4, 6};
+    nicesort::insertion_sort(v.begin(), v.end(), std::less<int>{});
+    assert(std::is_sorted(v.begin(), v.end()));
+
+    // Already sorted — must remain sorted.
+    auto sorted = v;
+    nicesort::insertion_sort(v.begin(), v.end(), std::less<int>{});
+    assert(v == sorted);
+
+    // Descending comparator.
+    nicesort::insertion_sort(v.begin(), v.end(), std::greater<int>{});
+    assert(std::is_sorted(v.begin(), v.end(), std::greater<int>{}));
+
+    // Two elements, reversed.
+    std::vector<int> two{2, 1};
+    nicesort::insertion_sort(two.begin(), two.end(), std::less<int>{});
+    assert((two == std::vector{1, 2}));
+
+    // Single element — must not crash.
+    std::vector<int> one{42};
+    nicesort::insertion_sort(one.begin(), one.end(), std::less<int>{});
+    assert(one[0] == 42);
+  }
+
+  // nicesort stability is preserved for sizes that span multiple block merges.
+  {
+    struct KV { int key, seq; };
+    for (int n : {8, 16, 17, 32, 64, 128}) {
+      std::vector<KV> v;
+      // Interleave keys so equal-key elements are non-adjacent (stress merges),
+      // but each key group's seqs are still in ascending order within the group
+      // before sorting — a stable sort must keep them ascending.
+      for (int i = 0; i < n; ++i) v.push_back({i % 5, i});
+      // Do NOT shuffle: seqs within each key group are already ascending.
+      // A stable sort must preserve that order.
+      nicesort::sort(v.begin(), v.end(),
+        [](KV const& a, KV const& b){ return a.key < b.key; });
+
+      assert(std::is_sorted(v.begin(), v.end(),
+        [](KV const& a, KV const& b){ return a.key < b.key; }));
+
+      // Within each key group, seqs must remain in ascending order.
+      for (std::size_t i = 1; i < v.size(); ++i)
+        if (v[i].key == v[i-1].key) assert(v[i].seq > v[i-1].seq);
+    }
+  }
+
+  // nicesort correctness vs std::sort on 2000-element permutation.
+  {
+    std::vector<int> v(2000);
+    std::iota(v.begin(), v.end(), -1000);
+    std::shuffle(v.begin(), v.end(), std::mt19937{77777u});
+    auto ref = v;
+    nicesort::sort(v.begin(), v.end());
+    std::sort(ref.begin(), ref.end());
+    assert(v == ref);
+  }
+
+  // nicesort on a sub-range of a larger vector.
+  {
+    std::vector<int> v{9, 5, 3, 7, 1, 8, 2, 6, 4};
+    nicesort::sort(v.begin() + 2, v.begin() + 7); // sort only [3,7,1,8,2]
+    assert(std::is_sorted(v.begin() + 2, v.begin() + 7));
+    assert(v.front() == 9 && v[1] == 5); // outside range untouched
+    assert(v.back() == 4 && v[7] == 6);  // outside range untouched
+  }
+
+  // prepend_range with rvalue move semantics.
+  {
+    std::vector<std::string> src = {"X", "Y", "Z"};
+    dq::array<std::string, 10> dq = {"A", "B"};
+    dq.prepend_range(std::move(src));
+    assert(dq.size() == 5);
+    assert(dq[0] == "X" && dq[1] == "Y" && dq[2] == "Z");
+    assert(dq[3] == "A" && dq[4] == "B");
+    // Source elements must be moved-from.
+    assert(src[0].empty() && src[1].empty() && src[2].empty());
+  }
+
+  // insert_range with rvalue move semantics.
+  {
+    std::vector<std::string> src = {"M", "N"};
+    dq::array<std::string, 10> dq = {"A", "D"};
+    dq.insert_range(dq.begin() + 1, std::move(src));
+    assert(dq.size() == 4);
+    assert(dq[0] == "A" && dq[1] == "M" && dq[2] == "N" && dq[3] == "D");
+    assert(src[0].empty() && src[1].empty());
+  }
+
+  // append_range with rvalue move semantics.
+  {
+    std::vector<std::string> src = {"P", "Q"};
+    dq::array<std::string, 10> dq = {"A", "B"};
+    dq.append_range(std::move(src));
+    assert(dq.size() == 4);
+    assert(dq[2] == "P" && dq[3] == "Q");
+    assert(src[0].empty() && src[1].empty());
+  }
+
+  // allocator — default-constructed data() is always non-null.
+  {
+    dq::array<int, 8, dq::NEW> a;
+    assert(a.data() != nullptr);
+    assert(a.empty());
+    a.push_back(1);
+    assert(a.data() != nullptr);
+    assert(a.front() == 1);
+  }
+
+  // allocator — push stress to full capacity.
+  {
+    dq::array<int, 100, dq::NEW> a;
+    for (int i = 0; i < 100; ++i) a.push_back(i);
+    assert(a.full());
+    assert(a.size() == 100);
+    for (std::size_t i = 0; i < 100; ++i) assert(a[i] == static_cast<int>(i));
+  }
+
+  // count multi-key returns zero when none present (wrapped buffer).
+  {
+    dq::array<int, 6> circ;
+    for (int v : {1, 3, 5, 7, 9, 11}) circ.push_back(v);
+    circ.push_back(13); // [3,5,7,9,11,13], wrapped
+    auto n = dq::count(circ, 2, 4, 6);
+    assert(n == 0);
+  }
+
+  // count multi-key finds each value exactly once (wrapped buffer).
+  {
+    dq::array<int, 6> circ;
+    for (int v : {1, 2, 3, 4, 5, 6}) circ.push_back(v);
+    circ.push_back(7); // [2,3,4,5,6,7], wrapped
+    auto n = dq::count(circ, 3, 6, 99); // 3 found once, 6 found once, 99 not found
+    assert(n == 2);
+  }
+
+  // Element value correctness across multiple sequential cyclic overwrites.
+  // push_back on full: drops front, adds to back.
+  // push_front on full: overwrites front in place.
+  {
+    dq::array<int, 4> ring;
+    ring.push_back(1); ring.push_back(2); ring.push_back(3); ring.push_back(4);
+
+    ring.push_back(5); // drops 1 → [2,3,4,5]
+    assert((ring == std::array{2, 3, 4, 5}));
+
+    ring.push_back(6); // drops 2 → [3,4,5,6]
+    assert((ring == std::array{3, 4, 5, 6}));
+
+    ring.push_front(10); // full: overwrites front (3) → [10,4,5,6]
+    assert(ring.front() == 10);
+    assert(ring.back()  == 6);
+    assert(ring.size()  == 4);
+
+    ring.push_front(20); // full: overwrites front (10) → [20,4,5,6]
+    assert(ring.front() == 20);
+    assert(ring.back()  == 6);
+  }
+
+  // append() returns zero when container is already full.
+  {
+    dq::array<int, 3> full{1, 2, 3};
+    assert(full.full());
+    int src[] = {4, 5};
+    auto added = full.append(src, 2);
+    assert(added == 0);
+    assert((full == std::array{1, 2, 3})); // unchanged
+  }
+
+  // erase() returns the correct successor on a wrapped buffer.
+  {
+    dq::array<int, 6> circ;
+    for (int v : {10, 20, 30, 40, 50, 60}) circ.push_back(v);
+    circ.push_back(70); // [20,30,40,50,60,70], wrapped
+
+    auto it = circ.erase(circ.begin() + 2); // erase 40
+    assert(*it == 50);
+    assert(circ.size() == 5);
+    assert((circ == std::array{20, 30, 50, 60, 70}));
+
+    it = circ.erase(circ.begin()); // erase front
+    assert(*it == 30);
+    assert(circ.size() == 4);
+  }
+
+  // find_if returns end() for no match in non-empty wrapped container.
+  {
+    dq::array<int, 6> circ;
+    for (int v : {1, 3, 5, 7, 9, 11}) circ.push_back(v);
+    circ.push_back(13); // [3,5,7,9,11,13], wrapped; all odd
+    auto it = dq::find_if(circ, [](int x){ return x % 2 == 0; });
+    assert(it == circ.end());
+    assert(!it);
+  }
+
+  // pop_back(n) and pop_front(n) across a wrap boundary.
+  {
+    dq::array<int, 8> circ;
+    for (int v : {1,2,3,4,5,6,7,8}) circ.push_back(v);
+    circ.push_back(9); // [2,3,4,5,6,7,8,9], wrapped
+
+    circ.pop_back(3);
+    assert(circ.size() == 5);
+    assert(circ.back() == 6);
+
+    circ.pop_front(2);
+    assert(circ.size() == 3);
+    assert(circ.front() == 4);
+    assert((circ == std::array{4, 5, 6}));
+  }
+
+  // CTAD deduction from different value types.
+  {
+    dq::array arr_int    = {1, 2, 3};
+    dq::array arr_double = {1.0, 2.0, 3.0};
+    dq::array arr_char   = {'a', 'b', 'c'};
+    static_assert(std::same_as<decltype(arr_int)::value_type,    int>);
+    static_assert(std::same_as<decltype(arr_double)::value_type, double>);
+    static_assert(std::same_as<decltype(arr_char)::value_type,   char>);
+    static_assert(decltype(arr_int)::capacity()    == 3);
+    static_assert(decltype(arr_double)::capacity() == 3);
+    static_assert(decltype(arr_char)::capacity()   == 3);
+  }
+
+  // emplace_back / emplace_front return references that remain valid for non-trivial types.
+  {
+    dq::array<std::string, 5> dq;
+    std::string& r1 = dq.emplace_back("hello");
+    assert(r1 == "hello");
+    assert(&r1 == &dq.back());
+
+    std::string& r2 = dq.emplace_front("world");
+    assert(r2 == "world");
+    assert(&r2 == &dq.front());
+  }
+
+  // Verify FIFO semantics: every value pushed is eventually popped in order.
+  {
+    constexpr int CAP = 5;
+    dq::array<int, CAP> dq;
+    std::deque<int> ref;
+
+    std::mt19937 rng{12345u};
+    std::uniform_int_distribution<int> opd(0, 1);
+    int next_push = 0;
+
+    for (int iter = 0; iter < 200; ++iter) {
+      if (opd(rng) == 0 && !dq.full()) {
+        dq.push_back(next_push);
+        ref.push_back(next_push++);
+      } else if (!dq.empty()) {
+        assert(dq.front() == ref.front());
+        dq.pop_front();
+        ref.pop_front();
+      }
+      assert(dq.size() == ref.size());
+    }
+    // Drain remaining.
+    while (!dq.empty()) {
+      assert(dq.front() == ref.front());
+      dq.pop_front();
+      ref.pop_front();
+    }
+  }
+
+  // std::lower_bound / upper_bound on a sorted dq::array.
+  {
+    dq::array<int, 10> dq = {1, 3, 5, 7, 9, 11};
+    auto lo = std::lower_bound(dq.begin(), dq.end(), 5);
+    assert(*lo == 5 && std::distance(dq.begin(), lo) == 2);
+
+    auto hi = std::upper_bound(dq.begin(), dq.end(), 5);
+    assert(*hi == 7 && std::distance(dq.begin(), hi) == 3);
+
+    // Value not present.
+    auto it = std::lower_bound(dq.begin(), dq.end(), 6);
+    assert(*it == 7);
+
+    // Value past end.
+    it = std::lower_bound(dq.begin(), dq.end(), 99);
+    assert(it == dq.end());
+  }
+
+  // std::binary_search on a sorted dq::array.
+  {
+    dq::array<int, 10> dq = {2, 4, 6, 8, 10};
+    assert(std::binary_search(dq.begin(), dq.end(), 4));
+    assert(std::binary_search(dq.begin(), dq.end(), 10));
+    assert(!std::binary_search(dq.begin(), dq.end(), 5));
+    assert(!std::binary_search(dq.begin(), dq.end(), 0));
+  }
+
+  // std::equal_range on a sorted dq::array with duplicates.
+  {
+    dq::array<int, 10> dq = {1, 2, 2, 2, 3, 4};
+    auto [lo, hi] = std::equal_range(dq.begin(), dq.end(), 2);
+    assert(std::distance(lo, hi) == 3);
+    assert(*lo == 2);
+    assert(*hi == 3);
+  }
+
+  // std::transform_reduce (C++17) integration.
+  {
+    dq::array<int, 8> a = {1, 2, 3, 4};
+    dq::array<int, 8> b = {10, 20, 30, 40};
+    int dot = std::transform_reduce(a.begin(), a.end(), b.begin(), 0);
+    assert(dot == 1*10 + 2*20 + 3*30 + 4*40); // 300
+  }
+
+  // std::for_each accumulates correctly (even vs odd sums).
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8};
+    int even_sum = 0, odd_sum = 0;
+    std::for_each(dq.begin(), dq.end(), [&](int x){
+      if (x % 2 == 0) even_sum += x; else odd_sum += x;
+    });
+    assert(even_sum == 2+4+6+8);  // 20
+    assert(odd_sum  == 1+3+5+7);  // 16
+  }
+
+  // Interleaved erase + insert keeps correct element count and values.
+  {
+    dq::array<int, 10> dq = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    // Erase all even indices, inserting a sentinel after each erasure.
+    for (auto it = dq.begin(); it != dq.end(); ) {
+      if (*it % 2 == 0) {
+        it = dq.erase(it);
+        it = dq.insert(it, -1);
+        ++it; // skip the -1 we just inserted
+      } else {
+        ++it;
+      }
+    }
+    // Result: [-1,1,-1,3,-1,5,-1,7,-1,9]
+    assert(dq.size() == 10);
+    for (std::size_t i = 0; i < dq.size(); i += 2) assert(dq[i] == -1);
+    for (std::size_t i = 1; i < dq.size(); i += 2) assert(dq[i] % 2 == 1);
+  }
+
+  // Iterator comparison across const / non-const variants (cross-type <=>).
+  {
+    dq::array<int, 8> dq = {10, 20, 30, 40, 50};
+    auto  it  = dq.begin() + 1;
+    auto  cit = dq.cbegin() + 3;
+
+    assert((it  <=> cit) < 0);
+    assert((cit <=> it)  > 0);
+    assert(it != cit);
+    assert(!(it == cit));
+  }
+
+  // Verify resize shrinks, grows, then shrinks again without corruption.
+  {
+    dq::array<int, 20> dq;
+    for (int i = 0; i < 15; ++i) dq.push_back(i);
+    dq.resize(8);
+    assert(dq.size() == 8 && dq[7] == 7);
+    dq.resize(12, 99);
+    assert(dq.size() == 12 && dq[8] == 99 && dq[11] == 99);
+    dq.resize(4);
+    assert(dq.size() == 4 && dq[3] == 3);
+    dq.resize(0);
+    assert(dq.empty());
+  }
+
+  // push_front variadic inserts elements in correct left-to-right order.
+  {
+    dq::array<int, 10> dq = {4, 5};
+    dq.push_front(1, 2, 3); // should prepend 1, 2, 3 in that order
+    assert(dq.size() == 5);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
+  }
+
+  // push_back variadic appends elements in left-to-right order.
+  {
+    dq::array<int, 10> dq = {1, 2};
+    dq.push_back(3, 4, 5);
+    assert(dq.size() == 5);
+    assert((dq == std::array{1, 2, 3, 4, 5}));
+  }
+
+  // assign_range from an rvalue view — elements are moved.
+  {
+    std::vector<std::string> src = {"alpha", "beta", "gamma"};
+    dq::array<std::string, 10> dq;
+    dq.assign_range(std::move(src));
+    assert(dq.size() == 3);
+    assert(dq[0] == "alpha" && dq[2] == "gamma");
+    // Source elements moved-from.
+    assert(src[0].empty() && src[1].empty() && src[2].empty());
+  }
+
+  // stable_sort on an all-equal-key container preserves insertion sequence.
+  {
+    struct Item { int key, id; };
+    dq::array<Item, 8> dq;
+    for (int i = 0; i < 8; ++i) dq.push_back({42, i});
+    dq.stable_sort(dq.begin(), dq.end(),
+      [](Item const& a, Item const& b){ return a.key < b.key; });
+    for (int i = 0; i < 8; ++i) assert(dq[i].id == i); // order preserved
+  }
+
+  // nicesort::sort with a custom strict-weak-order on strings.
+  {
+    std::vector<std::string> v{"banana", "apple", "cherry", "date", "elderberry"};
+    nicesort::sort(v.begin(), v.end());
+    assert(std::is_sorted(v.begin(), v.end()));
+    assert(v.front() == "apple" && v.back() == "elderberry");
+
+    // Reverse.
+    nicesort::sort(v.begin(), v.end(), std::greater<std::string>{});
+    assert(std::is_sorted(v.begin(), v.end(), std::greater<std::string>{}));
+  }
+
+  // dq::find_if returns const_iterator when called on a const container.
+  {
+    const dq::array<int, 6> cdq = {2, 4, 6, 8, 10};
+    // Predicate that only the first element satisfies.
+    auto cit = dq::find_if(cdq, [](int x){ return x == 2; });
+    static_assert(std::same_as<decltype(cit),
+                               dq::array<int,6>::const_iterator>);
+    assert(cit != cdq.end() && *cit == 2);
+
+    // Predicate that no element satisfies → end().
+    auto none = dq::find_if(cdq, [](int x){ return x > 100; });
+    assert(none == cdq.end());
+  }
+
+  // dq::count_if returns correct count on const container.
+  {
+    const dq::array<int, 8> cdq = {1, 2, 3, 4, 5, 6};
+    auto n = dq::count_if(cdq, [](int x){ return x > 3; });
+    assert(n == 3);
+  }
+
+  // Erase-remove idiom with std::ranges::remove.
+  {
+    dq::array<int, 10> dq = {1, 2, 3, 4, 5, 6, 7, 8};
+    auto rem = std::ranges::remove(dq, 4);
+    dq.erase(rem.begin(), rem.end());
+    assert(dq.size() == 7);
+    assert(std::find(dq.begin(), dq.end(), 4) == dq.end());
+  }
+
+  // std::ranges::copy_if into a back_inserter on dq::array.
+  {
+    dq::array<int, 10> src = {1, 2, 3, 4, 5, 6};
+    dq::array<int, 10> dst;
+    std::ranges::copy_if(src, std::back_inserter(dst), [](int x){ return x % 2 == 0; });
+    assert(dst.size() == 3);
+    assert((dst == std::array{2, 4, 6}));
+  }
+
+  // std::ranges::transform writes into another dq::array via begin().
+  {
+    dq::array<int, 6> src = {1, 2, 3, 4, 5};
+    dq::array<int, 6> dst(src.size());
+    std::ranges::transform(src, dst.begin(), [](int x){ return x * x; });
+    assert((dst == std::array{1, 4, 9, 16, 25}));
+  }
+
+  // pop_back(n) on a 1-capacity container.
+  {
+    dq::array<int, 1> tiny;
+    tiny.push_back(7);
+    assert(tiny.size() == 1 && tiny.front() == 7);
+    tiny.pop_back(1);
+    assert(tiny.empty());
+  }
+
+  // Wrap condition detection via split() segment count.
+  {
+    dq::array<int, 4> dq = {1, 2, 3, 4};
+    {
+      auto segs = dq.split();
+      // No wrap: first segment covers all, second empty.
+      assert(segs[0][1] - segs[0][0] == 4);
+      assert(segs[1][0] == segs[1][1]);
+    }
+
+    // Two cycles of pop-front/push-back force a non-empty second physical segment.
+    dq.pop_front(); dq.push_back(5); // f_ advances once, tail wraps
+    dq.pop_front(); dq.push_back(6); // now second segment has data
+
+    // Logical contents: [3,4,5,6], both segments non-empty.
+    assert((dq == std::array{3, 4, 5, 6}));
+    auto segs = dq.split();
+    // Total elements across both segments must equal size.
+    auto total = (segs[0][1]-segs[0][0]) + (segs[1][1]-segs[1][0]);
+    assert(total == 4);
+    // With two wrap cycles the second segment is non-empty.
+    assert(segs[1][1] - segs[1][0] > 0);
+  }
+
+  // std::min_element and std::max_element on a wrapped buffer.
+  {
+    dq::array<int, 6> circ;
+    for (int v : {5, 1, 9, 3, 7, 2}) circ.push_back(v);
+    circ.pop_front(); circ.push_back(8); // [1,9,3,7,2,8], wrapped
+
+    assert(*std::min_element(circ.begin(), circ.end()) == 1);
+    assert(*std::max_element(circ.begin(), circ.end()) == 9);
+    assert(*std::ranges::min_element(circ) == 1);
+    assert(*std::ranges::max_element(circ) == 9);
+  }
+
+  // Comparison: empty dq::array < non-empty of the same capacity.
+  {
+    dq::array<int, 5> empty;
+    dq::array<int, 5> one = {1};
+
+    assert(empty < one);
+    assert(!(one < empty));
+    assert(empty != one);
+    assert((empty <=> one) < 0);
+    assert((one <=> empty) > 0);
+  }
+
+  // Assign from a forward_list (single-pass input range) via assign().
+  {
+    std::forward_list fl{10, 20, 30, 40};
+    dq::array<int, 10> dq;
+    dq.assign(fl.begin(), fl.end());
+    assert(dq.size() == 4);
+    assert(dq[0] == 10 && dq[3] == 40);
+  }
+
+  // Large stress: sorted state verified after interleaved sort + erase_if.
+  {
+    dq::array<int, 200> dq;
+    for (int i = 0; i < 200; ++i) dq.push_back(200 - i); // reverse order
+    dq.sort(dq.begin(), dq.end());
+    assert(std::is_sorted(dq.begin(), dq.end()));
+
+    auto removed = dq::erase_if(dq, [](int x){ return x % 3 == 0; });
+    assert(removed > 0);
+    assert(std::is_sorted(dq.begin(), dq.end()));
+    for (int x : dq) assert(x % 3 != 0);
   }
 }
 
