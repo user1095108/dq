@@ -521,7 +521,7 @@ public:
 
   constexpr iterator insert(multi_t, const_iterator i, auto&& ...a)
     noexcept(noexcept((insert<0>(i, std::forward<decltype(a)>(a)), ...)))
-    requires(sizeof...(a) > 1)
+    requires(!!sizeof...(a))
   {
     (++(i = insert<0>(i, std::forward<decltype(a)>(a))), ...);
 
