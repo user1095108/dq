@@ -1277,6 +1277,12 @@ void test() {
     dq::array<int, 10> dq = {1,2,3};
     dq.insert(dq.begin()+1, std::begin(raw), std::end(raw));
     assert((dq == std::array{1,9,8,7,2,3}));
+    dq = {1,2,3};
+    dq.prepend_range({0});
+    assert((dq == std::array{0,1,2,3}));
+    dq = {1,2,3};
+    dq.append_range({4});
+    assert((dq == std::array{1,2,3,4}));
   }
 
   // assign with an initializer list.
@@ -1292,8 +1298,8 @@ void test() {
     dq::array<std::string, 5> a = {"a","b"};
     dq::array<std::string, 5> b = {"x","y","z"};
     std::swap(a,b);
-    assert((a == std::initializer_list<std::string_view>{"x","y","z"}));
-    assert((b == std::initializer_list<std::string_view>{"a","b"}));
+    assert((a == std::initializer_list{"x","y","z"}));
+    assert((b == std::initializer_list{"a","b"}));
   }
 
   // std::inner_product integration.
