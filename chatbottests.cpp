@@ -4205,6 +4205,7 @@ void test() {
     for (int x : dq) assert(x % 3 != 0);
   }
 
+  // self-assign move
   {
     dq::array a{1, 2, 3, 4};
     a = std::move(a);
