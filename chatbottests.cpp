@@ -18,12 +18,14 @@
 
 #include "array.hpp"
 
+void test()
+{
+
 // ============================================================================
 // §1  CONSTRUCTION
 //     Covers every constructor form: default, copy, move, initializer-list,
 //     fill, multi-arg tag, range/from_range tag, and CTAD deduction.
 // ============================================================================
-void test_construction()
 {
   // 1.1  Default construction yields an empty container.
   {
@@ -55,7 +57,7 @@ void test_construction()
 
   // 1.5  multi_t variadic-arg constructor.
   {
-    dq::array<int, 10> d(dq::multi, 10, 20, 30);
+    dq::array d(dq::multi, 10, 20, 30);
     assert(d.size() == 3);
     assert(d[0] == 10 && d[1] == 20 && d[2] == 30);
   }
@@ -77,32 +79,32 @@ void test_construction()
 
   // 1.8  Copy construction — int.
   {
-    dq::array<int, 10> src = {1, 2, 3, 4, 5};
-    dq::array<int, 10> dst(src);
+    dq::array src = {1, 2, 3, 4, 5};
+    dq::array dst(src);
     assert(dst == src);
   }
 
   // 1.9  Copy construction — std::string (non-trivial type).
   {
-    dq::array<std::string, 10> src = {"one", "two", "three"};
-    dq::array<std::string, 10> dst(src);
+    dq::array src = {"one", "two", "three"};
+    dq::array dst(src);
     assert(dst == src);
   }
 
   // 1.10 Move construction — int.
   {
-    dq::array<int, 10> src = {1, 2, 3};
-    dq::array<int, 10> snapshot(src);
-    dq::array<int, 10> dst(std::move(src));
+    dq::array src = {1, 2, 3};
+    dq::array snapshot(src);
+    dq::array dst(std::move(src));
     assert(dst == snapshot);
     assert(src.empty());
   }
 
   // 1.11 Move construction — std::string.
   {
-    dq::array<std::string, 10> src = {"a", "b", "c"};
-    dq::array<std::string, 10> snapshot(src);
-    dq::array<std::string, 10> dst(std::move(src));
+    dq::array<std::string, 3> src = {"a", "b", "c"};
+    dq::array snapshot(src);
+    dq::array dst(std::move(src));
     assert(dst == snapshot);
     assert(src.empty());
   }
@@ -178,7 +180,6 @@ void test_construction()
 //     Covers copy-assign, move-assign, initializer-list assign, range assign,
 //     and the assign() / assign_range() member functions.
 // ============================================================================
-void test_assignment()
 {
   // 2.1  Copy assignment.
   {
@@ -330,7 +331,6 @@ void test_assignment()
 // §3  ELEMENT ACCESS
 //     Covers operator[], at(), front(), back(), data(), first(), last().
 // ============================================================================
-void test_element_access()
 {
   // 3.1  operator[] read and write.
   {
@@ -391,7 +391,6 @@ void test_element_access()
 // §4  CAPACITY QUERIES
 //     Covers size(), empty(), full(), capacity(), max_size().
 // ============================================================================
-void test_capacity_queries()
 {
   // 4.1  Static capacity and max_size are compile-time constants.
   {
@@ -430,7 +429,6 @@ void test_capacity_queries()
 //     Covers push_back, push_front, emplace_back, emplace_front, pop_back,
 //     pop_front, and their bulk / variadic overloads.
 // ============================================================================
-void test_push_pop()
 {
   // 5.1  Basic push_back and push_front, pop_back and pop_front.
   {
@@ -592,7 +590,6 @@ void test_push_pop()
 //     Covers cyclic overwrite semantics for both push directions, and the
 //     interaction with full(), size(), front(), and back().
 // ============================================================================
-void test_circular_behaviour()
 {
   // 6.1  push_back on a full container advances front (drops oldest element).
   {
@@ -692,7 +689,6 @@ void test_circular_behaviour()
 //     Covers resize(n), resize(n, v), clear(), full-container erase →
 //     re-insertion.
 // ============================================================================
-void test_resize_clear()
 {
   // 7.1  resize shrinks and preserves front elements.
   {
@@ -781,7 +777,6 @@ void test_resize_clear()
 //     initializer-list insert, range insert, append_range, prepend_range,
 //     insert_range, and the variadic multi-tag insert.
 // ============================================================================
-void test_insert()
 {
   // 8.1  Single-element insert at begin, middle, and end.
   {
@@ -1064,7 +1059,6 @@ void test_insert()
 //     erase returning correct successor iterators, and erase on wrapped
 //     buffers.
 // ============================================================================
-void test_erase()
 {
   // 9.1  Single-element erase at front, middle, and back.
   {
@@ -1215,7 +1209,6 @@ void test_erase()
 // ============================================================================
 // §10 SWAP
 // ============================================================================
-void test_swap()
 {
   // 10.1 Member swap — MEMBER allocator.
   {
@@ -1308,7 +1301,6 @@ void test_swap()
 //     Covers ==, !=, <, <=, >, >=, <=>, cross-container comparisons, and
 //     comparisons with empty containers.
 // ============================================================================
-void test_comparison()
 {
   // 11.1 Basic relational operators.
   {
@@ -1388,7 +1380,6 @@ void test_comparison()
 //     Covers forward, reverse, and const iterators; iterator arithmetic;
 //     bool conversion; and the const_iterator conversion path.
 // ============================================================================
-void test_iterators()
 {
   // 12.1  begin() / end() traversal.
   {
@@ -1720,7 +1711,6 @@ void test_iterators()
 // ============================================================================
 // §13 HELPER ALGORITHMS: find, find_if, count, count_if, erase, erase_if
 // ============================================================================
-void test_helpers()
 {
   // 13.1  dq::find — basic hit and miss.
   {
@@ -1999,7 +1989,6 @@ void test_helpers()
 //     Covers the split() / csplit() segment layout, and dq::copy to a raw
 //     buffer, including on wrapped buffers.
 // ============================================================================
-void test_split_and_copy()
 {
   // 14.1  split() on an empty container — both segments are empty.
   {
@@ -2125,7 +2114,6 @@ void test_split_and_copy()
 // ============================================================================
 // §15 APPEND (from raw pointer region)
 // ============================================================================
-void test_append()
 {
   // 15.1  append adds elements from a raw pointer range.
   {
@@ -2169,7 +2157,6 @@ void test_append()
 //     comparators, on contiguous and wrapped buffers, including sub-range
 //     and edge-case variants.
 // ============================================================================
-void test_sort()
 {
   // 16.1  sort() — ascending.
   {
@@ -2361,7 +2348,6 @@ void test_sort()
 // §17 STD ALGORITHM AND RANGES INTEGRATION
 //     Covers std:: and std::ranges algorithms used with dq::array iterators.
 // ============================================================================
-void test_std_algorithms()
 {
   // 17.1  std::ranges concepts satisfied.
   {
@@ -2580,7 +2566,6 @@ void test_std_algorithms()
 // ============================================================================
 // §18 MOVE-ONLY TYPES
 // ============================================================================
-void test_move_only_types()
 {
   // 18.1  push_back and emplace_front with unique_ptr.
   {
@@ -2626,7 +2611,6 @@ void test_move_only_types()
 // ============================================================================
 // §19 NON-TRIVIAL / DESTRUCTOR CORRECTNESS
 // ============================================================================
-void test_destructor_correctness()
 {
   // 19.1  Destructor is called the right number of times.
   {
@@ -2675,7 +2659,6 @@ void test_destructor_correctness()
 // ============================================================================
 // §20 THREADING (single-producer / single-consumer)
 // ============================================================================
-void test_threading()
 {
   dq::array<int, 10> buffer;
   std::atomic<bool> done{};
@@ -2706,7 +2689,6 @@ void test_threading()
 // ============================================================================
 // §21 STRESS TESTS
 // ============================================================================
-void test_stress()
 {
   // 21.1  Randomised push / pop stress — size invariant holds.
   {
@@ -2781,7 +2763,6 @@ void test_stress()
 //     Tests nicesort::sort and nicesort::insertion_sort as standalone
 //     functions (independent of dq::array).
 // ============================================================================
-void test_nicesort()
 {
   // 22.1  Empty range — must not crash.
   {
@@ -2984,7 +2965,6 @@ void test_nicesort()
 // ============================================================================
 // §23 MISCELLANEOUS AND SPECIAL-CASE COVERAGE
 // ============================================================================
-void test_misc()
 {
   // 23.1  Range construction from a C array.
   {
@@ -3145,35 +3125,6 @@ void test_misc()
     assert(std::inner_product(a.begin(), a.end(), b.begin(), 0) == 32);
   }
 }
-
-// ============================================================================
-// Entry point
-// ============================================================================
-void test()
-{
-  test_construction();
-  test_assignment();
-  test_element_access();
-  test_capacity_queries();
-  test_push_pop();
-  test_circular_behaviour();
-  test_resize_clear();
-  test_insert();
-  test_erase();
-  test_swap();
-  test_comparison();
-  test_iterators();
-  test_helpers();
-  test_split_and_copy();
-  test_append();
-  test_sort();
-  test_std_algorithms();
-  test_move_only_types();
-  test_destructor_correctness();
-  test_threading();
-  test_stress();
-  test_nicesort();
-  test_misc();
 }
 
 int main()
