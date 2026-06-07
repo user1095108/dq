@@ -220,7 +220,7 @@ public:
       std::copy(E, o.begin(), o.end(), std::back_inserter(*this))))
     requires(std::is_copy_assignable_v<value_type>)
   {
-    if (this != &o)
+    if (this != std::addressof(o))
     {
       clear();
 
@@ -237,7 +237,7 @@ public:
       std::move(E, o.begin(), o.end(), std::back_inserter(*this))))
     requires(MEMBER == M)
   {
-    if (this != &o)
+    if (this != std::addressof(o))
     {
       clear();
 
@@ -253,7 +253,7 @@ public:
 
   constexpr array& operator=(array&& o) noexcept requires(NEW == M)
   { // swap & reset
-    if (this != &o)
+    if (this != std::addressof(o))
       detail::assign(f_, l_, a_, o.f_, o.l_, o.a_)
         (o.f_, o.l_, o.a_, a_, a_, a_);
 
@@ -841,8 +841,8 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////
-constexpr auto count_if(auto& c, auto pred)
-  noexcept(noexcept(pred(*c.cbegin())))
+constexpr auto count_if(auto& c, auto cmp)
+  noexcept(noexcept(cmp(*c.cbegin())))
   requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   typename std::remove_cvref_t<decltype(c)>::size_type cnt{};
@@ -852,9 +852,9 @@ constexpr auto count_if(auto& c, auto pred)
     if (i == j) break;
 
     for (; i < --j; ++i)
-      cnt += pred(std::as_const(*i)) + pred(std::as_const(*j));
+      cnt += cmp(std::as_const(*i)) + cmp(std::as_const(*j));
 
-    cnt += (i == j) && pred(std::as_const(*i));
+    cnt += (i == j) && cmp(std::as_const(*i));
   }
 
   return cnt;
@@ -885,8 +885,8 @@ constexpr auto count(auto& c,
 }
 
 template <typename T, auto S, auto M, auto E>
-constexpr auto erase_if(array<T, S, M, E>& c, auto pred)
-  noexcept(noexcept(c.erase(c.cbegin()), pred(*c.cbegin())))
+constexpr auto erase_if(array<T, S, M, E>& c, auto cmp)
+  noexcept(noexcept(c.erase(c.cbegin()), cmp(*c.cbegin())))
 {
   typename std::remove_reference_t<decltype(c)>::size_type r{};
 
@@ -895,7 +895,7 @@ constexpr auto erase_if(array<T, S, M, E>& c, auto pred)
     if (i == j) break;
 
     while ((i != j) && (i != c.last()))
-      pred(*i) ? ++r, i = std::addressof(*c.erase({&c, i})) : ++i;
+      cmp(*i) ? ++r, i = std::addressof(*c.erase({&c, i})) : ++i;
 
     if (c.first() <= c.last()) break;
   }
@@ -924,8 +924,8 @@ constexpr auto erase(array<T, S, M, E>& c, T const k)
   return erase<0>(c, k);
 }
 
-constexpr auto find_if(auto& c, auto pred)
-  noexcept(noexcept(pred(*c.cbegin()))) -> decltype(c.end())
+constexpr auto find_if(auto& c, auto cmp)
+  noexcept(noexcept(cmp(*c.cbegin()))) -> decltype(c.end())
   requires(requires{std::remove_cvref_t<decltype(c)>::dq_array_tag;})
 {
   for (auto [i, j]: c.split())
@@ -933,10 +933,10 @@ constexpr auto find_if(auto& c, auto pred)
     if (i == j) break;
 
     for (; i < --j; ++i)
-      if (pred(std::as_const(*i))) return {&c, i};
-      else if (pred(std::as_const(*j))) return {&c, j};
+      if (cmp(std::as_const(*i))) return {&c, i};
+      else if (cmp(std::as_const(*j))) return {&c, j};
 
-    if ((i == j) && pred(std::as_const(*i))) return {&c, i}; // !!!
+    if ((i == j) && cmp(std::as_const(*i))) return {&c, i}; // !!!
   }
 
   return c.end();

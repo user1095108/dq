@@ -14,6 +14,7 @@ namespace nicesort
 template <typename It>
 void insertion_sort(It const i, It const j, auto cmp)
 {
+  // assert(i != j);
   for (auto m(i + 1); j != m; ++m)
     if (cmp(*m, m[-1]))
     {
