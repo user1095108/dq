@@ -3120,8 +3120,8 @@ void test()
 
   // 23.15 std::inner_product on two dq::arrays.
   {
-    dq::array<int, 5> a = {1,2,3};
-    dq::array<int, 5> b = {4,5,6};
+    dq::array a = {1,2,3};
+    dq::array b = {4,5,6};
     assert(std::inner_product(a.begin(), a.end(), b.begin(), 0) == 32);
   }
 }
