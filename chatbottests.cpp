@@ -2760,8 +2760,7 @@ void test()
 
 // ============================================================================
 // §22 NICESORT — PUBLIC INTERFACE
-//     Tests nicesort::sort and nicesort::insertion_sort as standalone
-//     functions (independent of dq::array).
+//     Tests nicesort::sort as standalone function (independent of dq::array).
 // ============================================================================
 {
   // 22.1  Empty range — must not crash.
@@ -2937,28 +2936,6 @@ void test()
     nicesort::sort(v.begin(), v.end());
     std::sort(ref.begin(), ref.end());
     assert(v == ref);
-  }
-
-  // 22.19 insertion_sort direct invocation.
-  {
-    std::vector<int> v{5, 3, 8, 1, 9, 2, 7, 4, 6};
-    nicesort::insertion_sort(v.begin(), v.end(), std::less<int>{});
-    assert(std::is_sorted(v.begin(), v.end()));
-
-    auto sorted = v;
-    nicesort::insertion_sort(v.begin(), v.end(), std::less<int>{});
-    assert(v == sorted);
-
-    nicesort::insertion_sort(v.begin(), v.end(), std::greater<int>{});
-    assert(std::is_sorted(v.begin(), v.end(), std::greater<int>{}));
-
-    std::vector<int> two{2, 1};
-    nicesort::insertion_sort(two.begin(), two.end(), std::less<int>{});
-    assert((two == std::vector{1, 2}));
-
-    std::vector<int> one{42};
-    nicesort::insertion_sort(one.begin(), one.end(), std::less<int>{});
-    assert(one[0] == 42);
   }
 }
 

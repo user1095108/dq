@@ -11,23 +11,6 @@
 namespace nicesort
 {
 
-template <typename It>
-void insertion_sort(It const i, It const j, auto cmp)
-{
-  // assert(i != j);
-  for (auto m(i + 1); j != m; ++m)
-    if (cmp(*m, m[-1]))
-    {
-      auto tmp(std::move(*m));
-
-      auto n(m);
-
-      while (*n = std::move(n[-1]), (i != --n) && cmp(tmp, n[-1]));
-
-      *n = std::move(tmp);
-    }
-}
-
 template <auto E, typename It>
 void merge(It const a, It& b, It& c, It const d, auto& cmp)
 { // merge runs [a, b) and [c, d)
@@ -61,7 +44,19 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
         j += d; sz -= d;
       }
 
-      insertion_sort(i, j, cmp); // sort run [i, j)
+      // sort run [i, j)
+      // assert(i != j);
+      for (auto m(i + 1); j != m; ++m)
+        if (cmp(*m, m[-1]))
+        {
+          auto tmp(std::move(*m));
+
+          auto n(m);
+
+          while (*n = std::move(n[-1]), (i != --n) && cmp(tmp, n[-1]));
+
+          *n = std::move(tmp);
+        }
 
       // merge run [i, j) with valid stored runs
       auto r(runs);
