@@ -65,9 +65,8 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 
       // merge run [i, j) with valid stored runs
       auto r(runs);
-      ++mask;
 
-      for (auto n(~mask & (mask - 1)); n; n >>= 1)
+      for (auto n((++mask, ~mask & (mask - 1))); n; n >>= 1)
       { // ~(x + 1) & x - isolate trailing ones
         auto& [c, d](*r++);
         merge<E>(c, d, i, j, cmp);
