@@ -2,6 +2,7 @@
 # define NICESORT_HPP
 # pragma once
 
+#include <cstdint>
 #include <climits>
 #include <algorithm>
 #include <bit>
@@ -29,9 +30,8 @@ void sort(It i, It const e, Cmp&& cmp = Cmp())
 {
   if (e == i) return;
 
-  std::pair<It, It> runs[sizeof(unsigned) * CHAR_BIT];
-
-  unsigned mask{}; // occupancy mask
+  std::uint32_t mask{}; // occupancy mask
+  std::pair<It, It> runs[sizeof(mask) * CHAR_BIT];
 
   {
     auto j(i);
