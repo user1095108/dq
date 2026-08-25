@@ -26,7 +26,7 @@ template <auto E = std::execution::unseq,
   std::size_t bsize0 = 16, typename It,
   class Cmp = std::less<typename std::iterator_traits<It>::value_type>>
 requires std::random_access_iterator<It>
-void sort(It i, It const e, Cmp&& cmp = Cmp())
+void sort(It i, It const e, Cmp cmp = {})
 {
   if (e == i) return;
 
