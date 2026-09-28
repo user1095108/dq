@@ -385,9 +385,8 @@ public:
     noexcept(noexcept(push_back(a), resize(c)))
     requires(std::is_assignable_v<value_type&, decltype(a)>)
   {
-    auto sz(size());
-    for (; c > sz; ++sz, push_back(a));
-    if (c < sz) resize(c);
+    if (auto sz(size()); c < sz) resize(c);
+    else while (c > sz) ++sz, push_back(a);
   }
 
   constexpr void resize(size_type const c, value_type const a)
